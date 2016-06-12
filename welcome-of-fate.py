@@ -132,6 +132,8 @@ class Player(object):
         self.didmiss = None
         self.didcrit = None
         self.fail_run = None
+        # Special Skills
+        self.rank_up_as_one = False
 
     def add_stat(self,stat):
         if self.AP > 0:
@@ -217,6 +219,8 @@ class Player(object):
         self.intel = self.new_intel
         self.agi = self.new_agi
         self.luck = self.new_luck
+        if player.rank_up_as_one:
+            self.stren = 1
         # add bonus
         self.stren += self.bonusStren
         self.intel += self.bonusIntel
@@ -232,6 +236,10 @@ class Player(object):
         self.hit = self.hitU() + self.bonusHit
         self.dodge = self.dodgeU() + self.bonusDodge
         self.crit = self.critU() + self.bonusCrit
+        if player.rank_up_as_one:
+            self.HP = 1
+            self.maxHP = 1
+            self.stren = 1
 
 
 class Action:
@@ -399,6 +407,21 @@ class Passive(Skill):
         super(Passive,self).__init__(name,img,sound,desc,effdesc,requiredesc,maxRank)
         self.type = 'Passive'
         del self.damage
+    def giveBonus(self):
+        if self == max_mp_inc:
+            player.bonusMaxMP += self.bonus
+        elif self == magic_mast:
+            player.bonusLuck += self.bonus
+            player.bonusCrit += self.bonus
+            player.bonusHit += self.bonus
+        elif self == mana_armor:
+            player.bonusArmor += self.bonus
+            player.bonusMag_armor += self.bonus
+        elif self == as_one:
+            player.rank_up_as_one = True
+            player.bonusMaxMP += as_one.bonus
+            
+            
 
 basic_attack = Physical('Basic Attack','fists.png',weapon_atk_sound(),'Attack with your weapon','Deals physical damage','',0)
 # Mage Skills #1
@@ -429,8 +452,8 @@ meditate = Active('Meditate','meditate.png','charge.wav','Focus your mind','Next
 
 ## Passivesonus
 max_mp_inc = Passive('Max MP +','max_mp_inc.png',None,'Expand your mind','Increases Maximum MP','',7)
-magic_mast = Passive('Spell Mastery','magic_mast.png',None,'Train your skills','Increases Hit/Crit Chance (equip: Wand/Staff)','LV 5',5)
-mana_armor = Passive('Mana Armor','mana_armor.png',None,'Mana is Armor','Gain bonus Armor/Resist based on Current MP','LV: 8',4)
+magic_mast = Passive('Spell Mastery','magic_mast.png',None,'Train your skills','Increases Luck/Hit/Crit Chance','LV 5',5)
+mana_armor = Passive('Mana Armor','mana_armor.png',None,'Mana is Armor','Gain bonus Armor/Resist based on Current Max MP','LV: 8',3)
 as_one = Passive('As One','as_one.png',None,'You are one','Set Str/HP = 1, gain bonus MP based on difference','',1)
 
 
@@ -443,7 +466,7 @@ mage_skills_pg = [[ember,shower,breeze,shock,\
                    blaze,waterfall,whirlwind,lightning,\
                    inferno,tsunami,tornado,thunderstorm],\
                   [mana_gaurd,restore,barrier,meditate,None,None,None,None,\
-                   max_mp_inc,magic_mast,mana_armor,as_one,None,None,None,None,]]
+                   max_mp_inc,magic_mast,mana_armor,as_one,None,None,None,None]]
 
 def skillUpdate():
     if player.job == 'Mage': # MAGE SKILLS
@@ -498,12 +521,12 @@ def skillUpdate():
         meditate.mana = 140 - 15*meditate.rank
         meditate.detail = 'Multiplier: %i%%, Cooldown: %i, Mana Cost: %i'%(meditate.scale,meditate.cooldown,meditate.mana)
         # passives (has unique detail)
-        max_mp_inc.mp = 60*max_mp_inc.rank
-        max_mp_inc.detail = 'Max MP: +%i'%max_mp_inc.mp
-        magic_mast.bonus = 3*magic_mast.rank
-        magic_mast.detail = 'Hit/Crit: +%i'%magic_mast.bonus
-        mana_armor.bonus = (5*mana_armor.rank*(1+player.MP/(player.maxMP+100))*(player.MP/player.maxMP))
-        mana_armor.detail = 'Armor/Resist: +%i'%mana_armor.bonus
+        max_mp_inc.bonus = 60 # each level gains amount
+        max_mp_inc.detail = 'Max MP: +%i, Next rank: +%i'%(max_mp_inc.bonus*max_mp_inc.rank,max_mp_inc.bonus*(max_mp_inc.rank+1))
+        magic_mast.bonus = 4
+        magic_mast.detail = 'Hit/Crit: +%i, Next rank: +%i'%(magic_mast.bonus*magic_mast.rank,magic_mast.bonus*(magic_mast.rank+1))
+        mana_armor.bonus = round(player.maxMP/40)
+        mana_armor.detail = 'When ranked up, Armor/Resist: +%i instantly'%mana_armor.bonus
         as_one.bonus = (player.stren*2 + player.maxHP)*3
         as_one.detail = 'Max MP Gained:  +%i'%as_one.bonus
         
@@ -1401,12 +1424,15 @@ def slotButton(slot,x,y,w,h):
                                     if slot.rank == 0 or slot not in player.learned_skills: # add skill into leanred skill
                                         player.learned_skills[player.numLearnedSkills] = slot
                                         player.numLearnedSkills += 1
-                                    if not slot.rank ==slot.maxRank:    
+                                    if not slot.rank == slot.maxRank:    
                                         slot.rank += 1
                                         player.SP -= 1
                                         rank_up.play()
                                         time.sleep(0.3)
                                         skillUpdate()
+                                        if isinstance(slot,Passive):
+                                            slot.giveBonus()
+                                            player.statUpdate()
                                     else:
                                         textbox('Skill at max rank!',35,blue,800,235)
                                 else:

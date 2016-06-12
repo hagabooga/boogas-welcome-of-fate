@@ -96,6 +96,7 @@ class Player(object):
         self.hit = 0
         self.dodge = 0
         self.crit = 0
+        self.shield_hp = 0
         # Bonus
         self.bonusStren = 0
         self.bonusIntel = 0
@@ -247,10 +248,16 @@ class Action:
                 user.didCrit = True
             else:
                 user.didCrit = False
-            damage += random.choice(range(3)) # bonus damage
+            damage += random.choice(range(15)) # bonus damage
             if damage < 0: # if damage less than 0, damage = 0 so no heal
                 damage = 0
-            if mana_gaurd in player.fight_actives and user == enemy: # MANA GAURD SKILL
+            if victim.shield_hp > 0: # SHIELD DAMAGE GOES FIRST ALWAYS
+                if victim.shield_hp - damage < 0:
+                    victim.shield_hp = 0
+                    victim.HP -= damage - victim.shield_hp 
+                else:
+                    victim.shield_hp -= damage
+            elif mana_gaurd in player.fight_actives and user == enemy: # MANA GAURD SKILL
                     if victim.MP - damage < 0: # if deal more than current MP
                         victim.HP -= damage - victim.MP
                         victim.MP = 0
@@ -264,6 +271,7 @@ class Action:
             wear.play()
 
     def skillActive(user,victim,used_skill): # all skill actives
+        user.MP -= used_skill.mana
         used_skill.sound.play()
         Active.effect(used_skill)
         
@@ -361,12 +369,17 @@ class Active(Skill):
             player.bonusLuck += restore.bonus_stat
             player.bonusHit += restore.bonus_stat
             player.bonusCrit += restore.bonus_stat
-    def loseEffect(activeSkills):
-        for aSkill in activeSkills:
-            if aSkill == restore:
-                player.bonusLuck -= restore.bonus_stat
-                player.bonusHit -= restore.bonus_stat
-                player.bonusCrit -= restore.bonus_stat
+        elif used_skill == barrier:
+            print(barrier.shield)
+            player.shield_hp = barrier.shield
+
+    def loseEffect(aSkill):
+        if aSkill == restore:
+            player.bonusLuck -= restore.bonus_stat
+            player.bonusHit -= restore.bonus_stat
+            player.bonusCrit -= restore.bonus_stat
+        elif aSkill == barrier:
+            player.shield_hp -= barrier.shield
             
 
 class Passive(Skill):
@@ -465,8 +478,9 @@ def skillUpdate():
         restore.mana = round(50 + player.mag_damage*0.6*(1+ restore.rank/60))
         restore.detail = 'HP: Restore +%i, Luck/Hit/Crit: +%i, Mana Cost: %i'%(restore.hp,restore.bonus_stat,restore.mana)
         barrier.shield = round(75 + barrier.rank*6 + player.mag_damage*2*(1+barrier.rank/80))
-        barrier.detail = 'Shield Amount: %i, Mana Cost: %i'%(barrier.mana,barrier.shield)
-        barrier.mana = round(60 + barrier.rank*50 + player.mag_damage*0.43)
+        barrier.cooldown = 8
+        barrier.mana = round(60 + barrier.rank*50 + player.mag_damage*0.25)
+        barrier.detail = 'Shield Amount: %i, Mana Cost: %i'%(barrier.shield,barrier.mana)
         meditate.bonus_dmg = round(215 + (meditate.rank-1)*15)
         meditate.cooldown = 7 - meditate.rank
         meditate.mana = 140 - 15*meditate.rank
@@ -975,6 +989,7 @@ class Enemy:
         self.crit = crit
         self.loot = loot
         self.exp = exp
+        self.shield_hp = 0
         ## SKILLS
         self.basic = Physical('Basic Attack',None,weapon_atk_sound(),'','','',0)
         self.fireball = Magical('Fireball',None,'fire.wav','','','',0)
@@ -1056,8 +1071,10 @@ def gameover():
     time.sleep(0.5)
 
 def status_bar():
+    if player.shield_hp > 0:
+        textbox('Shield: %i'%player.shield_hp,40,orange,500,650)
     textbox(player.name,30,black,130,725)
-    textbox(('LV %i     HP %i / %i   MP %i / %i     $%i' %(player.LV,player.HP,player.maxHP,player.MP,player.maxMP,player.cash)),40,black,620,725)
+    textbox(('LV: %i     HP  %i / %i   MP  %i / %i     $%i' %(player.LV,player.HP,player.maxHP,player.MP,player.maxMP,player.cash)),40,black,620,725)
 
 def intro():
     global inSome
@@ -1406,7 +1423,7 @@ def slotButton(slot,x,y,w,h):
                             elif isinstance(slot,Passive):
                                 textbox('Cannot use Passive!',50,blue,800,235)
                             else:
-                                dmg_calc(slot)
+                                dmg_calc(slot) # regular attack
         elif inInv:
             if slot != None:
                 itemValue(slot)

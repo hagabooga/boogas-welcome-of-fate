@@ -398,10 +398,6 @@ class Active(Skill):
     def setTurnEnd(self,turn,duration):
         self.turnEnd = turn + duration
 
-
-
-            
-
 class Passive(Skill):
     def __init__(self,name,img,sound,desc,effdesc,requiredesc,maxRank):
         super(Passive,self).__init__(name,img,sound,desc,effdesc,requiredesc,maxRank)
@@ -506,11 +502,11 @@ def skillUpdate():
         thunderstorm.damage = round(180)
         thunderstorm.mana = round(110)
         # actives (has unique detail)
-        mana_gaurd.mana = round(75 + player.maxMP*(0.5 + mana_gaurd.rank/2)/(mana_gaurd.rank+1))
+        mana_gaurd.mana = round(75*mana_gaurd.rank + (player.maxMP*0.2)/(mana_gaurd.rank+1))
         mana_gaurd.detail = 'Mana Cost: %i'%mana_gaurd.mana
         restore.hp = round(10+restore.rank*5 + player.maxHP/(10 - restore.rank/3) + player.mag_damage*0.5/player.maxHP)
         restore.bonus_stat = round(restore.rank*6.5)
-        restore.mana = round(50 + player.mag_damage*0.6*(1+ restore.rank/60))
+        restore.mana = round(50 + player.mag_damage*0.6*(1 - restore.rank/60))
         restore.detail = 'HP: Restore +%i, Luck/Hit/Crit: +%i, Mana Cost: %i'%(restore.hp,restore.bonus_stat,restore.mana)
         barrier.shield = round(75 + barrier.rank*6 + player.mag_damage*2*(1+barrier.rank/80))
         barrier.cooldown = 5
@@ -678,12 +674,12 @@ class Body(Armor):
                                    bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost)
         self.type = 'Body'
 
-class Hat(Armor):
+class Head(Armor):
     def __init__(self,name,img,desc,\
                  bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost):
-        super(Hat,self).__init__(name,img,desc,\
+        super(Head,self).__init__(name,img,desc,\
                                    bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost)
-        self.type = 'Helmet'
+        self.type = 'Head'
 
 class L_hand(Armor):
     def __init__(self,name,img,desc,\
@@ -881,7 +877,40 @@ god = Body('God of Elements','god.png','Control the elements as you will',\
 shop_body_1 = [bronze_body,iron_body,steel_body,dia_body,cloak,black_cloak,stealth_cloak,ass_cloak,robe,mag_robe,star_robe,element_robe,\
        leather,chain,machine,reflect,blanket,toast,smile,god]
 givebdesc(shop_body_1)
-shop_pg = [shop_weapons_1,shop_body_1] # list in list
+
+##pg3 Left hand
+#mage
+shld_wood = L_hand('Wooden Shield','shld_wood.png','A shield made from wood',\
+                    0, 0, 0, 0, 15, 75, 0, 0, 17, 37, 0, 0, 0, 400)
+shld_mana = L_hand('Mana Shield','shld_mana.png','Shield imbued with mana',\
+                   0, 0, 0, 0, 30, 150, 0, 0, 48, 750, 0, 0, 0, 900)
+shld_star = L_hand('Star Shield','shld_star.png','Stars is your shield',\
+                   0, 0, 0, 0, 45, 450, 0, 0, 72, 134, 0, 0, 0, 1900)
+shld_element = L_hand('Elemental Shield','shld_element.png','The elements gaurds you',\
+                      0, 0, 0, 0, 75, 600, 0, 0, 100, 215, 0, 0, 0, 4200)
+##pg4 Head(helmets)
+#mage
+app_hat = Head("Apprentice's Hat",'app_hat.png','A hat used by apprentices',\
+              0, 5, 0, 0, 0, 0, 0, 0, 12, 40, 0, 0, 0, 500)
+mage_hat = Head('Mage Hat','mage_hat.png','Experienced mages wears this',\
+               0, 10, 0, 0, 0, 0, 0, 0, 32, 75, 0, 0, 0, 1100)
+star_hat = Head('Star Hat','star_hat.png','This hat glows a bit',\
+               0, 18, 0, 0, 0, 0, 0, 0, 60, 152, 0, 0, 0, 2500)
+element_hat = Head('Element Hat','element_hat.png','Focus the elements',\
+                  0, 40, 0, 0, 0, 0, 0, 0, 100, 210, 0, 0, 0, 5000)
+
+
+shop_L_hand_1 = [shld_wood,shld_mana,shld_star,shld_element,\
+                 app_hat,mage_hat,star_hat,element_hat,\
+                 None,None,None,None,\
+                 None,None,None,None,\
+                 None,None,None,None]
+
+givebdesc(shop_L_hand_1[0:8])
+
+shop_pg = [shop_weapons_1,shop_body_1,shop_L_hand_1] # list in list
+
+
 # Starting Weapons
 fists = Axe('Fists','fists.png','Bare hands (cannot unequip)',1,1,\
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -895,7 +924,7 @@ basic_sword = Sword('Basic Sword','normal.png','A basic sword',6,1,\
 # Strating armors
 fap = L_hand('Left Hand','start_left.png','Fap Fap Fap (cannot unequip)',\
                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-china_hat = Hat('China Hat','start_head.png','Offers no protection (cannot unequip)',\
+china_hat = Head('China Hat','start_head.png','Offers no protection (cannot unequip)',\
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 shirt_jeans = Body('Shirt and Jeans','start_body.png','Offers no protection (cannot unequip)',\
                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -1433,6 +1462,7 @@ def slotButton(slot,x,y,w,h):
                                         if isinstance(slot,Passive):
                                             slot.giveBonus()
                                             player.statUpdate()
+                                            skillUpdate()
                                     else:
                                         textbox('Skill at max rank!',35,blue,800,235)
                                 else:

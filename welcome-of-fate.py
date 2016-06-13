@@ -38,7 +38,7 @@ randColor2 = (random.choice(range(50,175)),random.choice(range(50,175)),random.c
 
 # Music/sounds
 def weapon_atk_sound():
-    atk_sound = random.choice(['atk1.wav','atk2.wav','atk3.wav','atk4.wav','atk5.wav','atk6.wav','atk7.wav'])
+    atk_sound = pygame.mixer.Sound(random.choice(['atk1.wav','atk2.wav','atk3.wav','atk4.wav','atk5.wav','atk6.wav','atk7.wav']))
     return atk_sound
 pygame.mixer.music.load('bgm_intro.mp3')
 heal = pygame.mixer.Sound('heal.wav')
@@ -251,7 +251,7 @@ class Action:
             damage = used_skill.damage - victim.mag_armor
         hit_chance = user.hit - victim.dodge
         if hit_chance >= random.choice(range(100)): # Check if hit
-            if meditate in player.fight_actives and isinstance(used_skill,Magical):
+            if meditate in player.fight_actives and isinstance(used_skill,Magical): # MEDITATE SKILL
                 damage *= meditate.scale/100 # a percentage
                 player.fight_actives.remove(meditate)
             if user.crit >= random.choice(range(100)): # if hit, check if crit
@@ -276,23 +276,18 @@ class Action:
                         victim.MP -= damage
             else: # no active skills
                 victim.HP -= damage # final calculation
-            used_skill.sound.play() # sound play if hit
+            if hasattr(used_skill,'sound'):
+                used_skill.sound.play() # sound play if hit
+            else: #generic hit sound
+                weapon_atk_sound().play()
             return damage
         else: # player miss
             wear.play()
     def skillActive(user,victim,used_skill): # all skill actives
         #user.MP -= used_skill.mana
         used_skill.sound.play()
-        if used_skill == barrier:
-            barrier.setTurnEnd(fight_turn,3)
-        elif used_skill == restore:
-            restore.setTurnEnd(fight_turn,3)
         Active.effect(used_skill)
-        
-##    def physical_atk(self, user, victim):
-##        dodge_rate = victim.dodge
-##        hit_rate = user.hit
-##        crit_rate = user.crit
+
 ##        ###############################
 ##        ### Lunge Crit/Dodge factor ###
 ##        if self == player.skill_lunge:
@@ -379,13 +374,21 @@ class Active(Skill):
         del self.damage
     def effect(used_skill):
         player.fight_actives.append(used_skill)
-        if used_skill == restore:
+        if used_skill == mana_gaurd:
+            mana_gaurd.setCooldownEnd(fight_turn,mana_gaurd.cooldown)
+        elif used_skill == restore:
             player.restoreHP(restore.hp)
             player.bonusLuck += restore.bonus_stat
             player.bonusHit += restore.bonus_stat
             player.bonusCrit += restore.bonus_stat
+            restore.setTurnEnd(fight_turn,3)
+            restore.setCooldownEnd(fight_turn,restore.cooldown)
         elif used_skill == barrier:
             player.shield_hp = barrier.shield
+            barrier.setTurnEnd(fight_turn,3)
+            barrier.setCooldownEnd(fight_turn,barrier.cooldown)
+        elif used_skill == meditate:
+            meditate.setCooldownEnd(fight_turn,meditate.cooldown)
 
     def loseEffect(self):
         if self == restore:
@@ -397,7 +400,13 @@ class Active(Skill):
             
     def setTurnEnd(self,turn,duration):
         self.turnEnd = turn + duration
+    def setCooldownEnd(self,turn,duration):
+        self.cooldownEnd = turn + duration
+    def delCooldownEnd(self):
+        if hasattr(self,'cooldownEnd'):
+            del self.cooldownEnd
 
+                
 class Passive(Skill):
     def __init__(self,name,img,sound,desc,effdesc,requiredesc,maxRank):
         super(Passive,self).__init__(name,img,sound,desc,effdesc,requiredesc,maxRank)
@@ -416,10 +425,11 @@ class Passive(Skill):
         elif self == as_one:
             player.rank_up_as_one = True
             player.bonusMaxMP += as_one.bonus
+            as_one.given_bonus = as_one.bonus
             
             
 
-basic_attack = Physical('Basic Attack','fists.png',weapon_atk_sound(),'Attack with your weapon','Deals physical damage','',0)
+basic_attack = Physical('Basic Attack','fists.png',None,'Attack with your weapon','Deals physical damage','',0)
 # Mage Skills #1
 # attack skills
 ember = Magical('Ember','ember.png','fire.wav','Burn the enemy','Small chance to burn','',3)
@@ -441,7 +451,7 @@ tornado = Magical('Tornado','tornado.png','wind.wav','Blow away the enemy','Grea
 thunderstorm = Magical('Thunderstorm','thunderstorm.png','thunder.wav','A storm of lightning','Higher chance to paralyze, Greatly increased crit rate',\
                        'LV: 18, Lightning: Rank: 3',3)
 ## Actives
-mana_gaurd = Active('Mana Gaurd','mana_gaurd.png','pheal.wav','Mana gaurds your health','Take damage from mana instead of health','LV: 2',3)
+mana_gaurd = Active('Mana Gaurd','mana_gaurd.png','pheal.wav','Mana gaurds your health','For 5 turns, take damage from mana instead of health','LV: 2',3)
 restore = Active('Restore','restore.png','heal.wav','Restore health','Restore health and gain temp. bonuses for 3 turns','LV: 10',5)
 barrier = Active('Barrier','barrier.png','charge.wav','Create a barrier','For 3 turns, create a shield','LV: 5',5)
 meditate = Active('Meditate','meditate.png','charge.wav','Focus your mind','Next spell deals massive damage','LV: 7',4)
@@ -455,8 +465,6 @@ as_one = Passive('As One','as_one.png',None,'You are one','Set Str/HP = 1, gain 
 
 
 # lists in list
-
-
 mage_skills_pg = [[ember,shower,breeze,shock,\
                    fireball,river,gust,thunderbolt,\
                    blaze,waterfall,whirlwind,lightning,\
@@ -503,19 +511,21 @@ def skillUpdate():
         thunderstorm.mana = round(110)
         # actives (has unique detail)
         mana_gaurd.mana = round(75*mana_gaurd.rank + (player.maxMP*0.2)/(mana_gaurd.rank+1))
-        mana_gaurd.detail = 'Mana Cost: %i'%mana_gaurd.mana
+        mana_gaurd.cooldown = 5
+        mana_gaurd.detail = 'CD: %i, Mana Cost: %i'%(mana_gaurd.cooldown,mana_gaurd.mana)
         restore.hp = round(10+restore.rank*5 + player.maxHP/(10 - restore.rank/3) + player.mag_damage*0.5/player.maxHP)
         restore.bonus_stat = round(restore.rank*6.5)
+        restore.cooldown = 3
         restore.mana = round(50 + player.mag_damage*0.6*(1 - restore.rank/60))
-        restore.detail = 'HP: Restore +%i, Luck/Hit/Crit: +%i, Mana Cost: %i'%(restore.hp,restore.bonus_stat,restore.mana)
+        restore.detail = 'HP: +%i, Luck/Hit/Crit: +%i, CD: %i, Mana Cost: %i'%(restore.hp,restore.bonus_stat,restore.cooldown,restore.mana)
         barrier.shield = round(75 + barrier.rank*6 + player.mag_damage*2*(1+barrier.rank/80))
         barrier.cooldown = 5
         barrier.mana = round(60 + barrier.rank*50 + player.mag_damage*0.25)
-        barrier.detail = 'Shield Amount: %i, Mana Cost: %i'%(barrier.shield,barrier.mana)
+        barrier.detail = 'Shield Amount: %i, CD: %i, Mana Cost: %i'%(barrier.shield,barrier.cooldown,barrier.mana)
         meditate.scale = round(215 + (meditate.rank-1)*15)
         meditate.cooldown = 7 - meditate.rank
         meditate.mana = 140 - 15*meditate.rank
-        meditate.detail = 'Multiplier: %i%%, Cooldown: %i, Mana Cost: %i'%(meditate.scale,meditate.cooldown,meditate.mana)
+        meditate.detail = 'Multiplier: %i%%, CD: %i, Mana Cost: %i'%(meditate.scale,meditate.cooldown,meditate.mana)
         # passives (has unique detail)
         max_mp_inc.bonus = 60 # each level gains amount
         max_mp_inc.detail = 'Max MP: +%i, Next rank: +%i'%(max_mp_inc.bonus*max_mp_inc.rank,max_mp_inc.bonus*(max_mp_inc.rank+1))
@@ -524,11 +534,10 @@ def skillUpdate():
         mana_armor.bonus = round(player.maxMP/40)
         mana_armor.detail = 'When ranked up, Armor/Resist: +%i instantly'%mana_armor.bonus
         as_one.bonus = (player.stren*2 + player.maxHP)*3
-        as_one.detail = 'Max MP Gained:  +%i'%as_one.bonus
-        
-        
-        
-        
+        if not player.rank_up_as_one:
+            as_one.detail = 'When ranked up, Max MP:  +%i'%as_one.bonus
+        else:
+            as_one.detail = 'Now gives, Max MP: +%i'%as_one.given_bonus
 
 ### Rouge Skills #1
 ##bleed = Skill()
@@ -1055,7 +1064,7 @@ class Enemy:
         self.exp = exp
         self.shield_hp = 0
         ## SKILLS
-        self.basic = Physical('Basic Attack',None,weapon_atk_sound(),'','','',0)
+        self.basic = Physical('Basic Attack',None,None,'','','',0)
         self.fireball = Magical('Fireball',None,'fire.wav','','','',0)
     def randSkill(self): # All enemy attacks are in here
         skill = random.choice([self.basic])#,self.fireball])
@@ -1370,7 +1379,7 @@ def checkEquip(slot):
         player.lefthand = fap
         wear.play()
     # put on hat
-    elif isinstance(slot,Hat) and slot is not player.head:
+    elif isinstance(slot,Head) and slot is not player.head:
         saved_item = None
         if player.head != china_hat and slot != player.head: # if has weapon equipped already
             saved_item = player.head
@@ -1480,7 +1489,11 @@ def slotButton(slot,x,y,w,h):
                 if slot != None:
                     itemValue(slot)
                     if pygame.mouse.get_pressed()[0]:
-                        if player.MP - slot.mana < 0: # check if player has enough mana
+                        if hasattr(slot,'cooldownEnd'):
+                            textbox('On cooldown! %i Turns Left'%(slot.cooldownEnd - fight_turn),30,blue,800,235)
+                            if slot.cooldownEnd <= fight_turn:
+                                del slot.cooldownEnd
+                        elif player.MP - slot.mana < 0: # check if player has enough mana
                             textbox('Not enough MP!',50,blue,800,235)
                         else:
                             if isinstance(slot,Active):
@@ -1873,6 +1886,7 @@ def fight():
     skillUpdate()
     player.fight_actives = [] # reset active skills
     player.shield_hp = 0 # reset shields
+    resetCooldown() # reset cooldown
     #Enemy(self, name, img, HP, MP, damage, mag_damage, armor, mag_armor, hit, dodge, crit, loot, exp):
     #Low level mobs
     alec = Enemy('Alec','alec.png',125,50,10,10,5,4,95,5,5,18,10)
@@ -1950,6 +1964,10 @@ def fight():
         ###
         pygame.display.update()
         clock.tick(60)
+
+def resetCooldown():
+    for skill in [mana_gaurd,restore,barrier,meditate]:
+        skill.delCooldownEnd()
 
 def showActives():
     x = 0

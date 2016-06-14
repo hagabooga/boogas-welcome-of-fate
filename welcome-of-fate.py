@@ -249,11 +249,11 @@ class Action:
             damage = used_skill.damage - victim.armor
         else:
             damage = used_skill.damage - victim.mag_armor
-        hit_chance = user.hit - victim.dodge
-        if hit_chance >= random.choice(range(100)): # Check if hit
-            if meditate in player.fight_actives and isinstance(used_skill,Magical): # MEDITATE SKILL
+        if meditate in player.fight_actives and isinstance(used_skill,Magical): # MEDITATE SKILL
                 damage *= meditate.scale/100 # a percentage
                 player.fight_actives.remove(meditate)
+        hit_chance = user.hit - victim.dodge
+        if hit_chance >= random.choice(range(100)): # Check if hit
             if user.crit >= random.choice(range(100)): # if hit, check if crit
                 damage *= 2 # crit multiplier
                 user.didCrit = True
@@ -284,7 +284,7 @@ class Action:
         else: # player miss
             wear.play()
     def skillActive(user,victim,used_skill): # all skill actives
-        #user.MP -= used_skill.mana
+        user.MP -= used_skill.mana
         used_skill.sound.play()
         Active.effect(used_skill)
 
@@ -330,30 +330,53 @@ class Skill(Action):
         self.mana = 0
         
     def skill_requirement(self): ##### ALL SKILL REQUIREMENTS
-        if self == fireball:
-            return player.LV >= 4 and ember.rank >= 3
-        elif self == river:
-            return player.LV >= 4 and shower.rank >= 3
-        elif self == gust:
-            return player.LV >= 4 and breeze.rank >= 3
-        elif self == thunderbolt:
-            return player.LV >= 4 and shock.rank >= 3
-        elif self == blaze:
-            return player.LV >= 10 and fireball.rank >= 3
-        elif self == waterfall:
-            return player.LV >= 10 and river.rank >= 3
-        elif self == whirlwind:
-            return player.LV >= 10 and gust.rank >= 3
-        elif self == lightning:
-            return player.LV >= 10 and thunderbolt.rank >= 3
-        elif self == inferno:
-            return player.LV >= 18 and blaze.rank >= 3
-        elif self == tsunami:
-            return player.LV >= 18 and waterfall.rank >= 3
-        elif self == tornado:
-            return player.LV >= 18 and whirlwind.rank >= 3
-        elif self == thunderstorm:
-            return player.LV >= 18 and lightning.rank >= 3
+        if isinstance(self,Magical):
+            if self == fireball:
+                return player.LV >= 4 and ember.rank >= 3
+            elif self == river:
+                return player.LV >= 4 and shower.rank >= 3
+            elif self == gust:
+                return player.LV >= 4 and breeze.rank >= 3
+            elif self == thunderbolt:
+                return player.LV >= 4 and shock.rank >= 3
+            elif self == blaze:
+                return player.LV >= 10 and fireball.rank >= 3
+            elif self == waterfall:
+                return player.LV >= 10 and river.rank >= 3
+            elif self == whirlwind:
+                return player.LV >= 10 and gust.rank >= 3
+            elif self == lightning:
+                return player.LV >= 10 and thunderbolt.rank >= 3
+            elif self == inferno:
+                return player.LV >= 18 and blaze.rank >= 3
+            elif self == tsunami:
+                return player.LV >= 18 and waterfall.rank >= 3
+            elif self == tornado:
+                return player.LV >= 18 and whirlwind.rank >= 3
+            elif self == thunderstorm:
+                return player.LV >= 18 and lightning.rank >= 3
+            else:
+                return True
+        elif isinstance(self,Active):
+            if self == mana_gaurd:
+                return player.LV >= 2
+            elif self == restore:
+                return player.LV >= 4
+            elif self == barrier:
+                return player.LV >= 6
+            elif self == meditate:
+                return player.LV >= 9
+            else:
+                return True
+        elif isinstance(self,Passive):
+            if self == magic_mast:
+                return player.LV >= 5
+            elif self == mana_armor:
+                return player.LV >= 8
+            elif self == as_one:
+                return player.LV >=5
+            
+                
         else:
             return True
 
@@ -453,15 +476,15 @@ thunderstorm = Magical('Thunderstorm','thunderstorm.png','thunder.wav','A storm 
                        'LV: 18, Lightning: Rank: 3',3)
 ## Actives
 mana_gaurd = Active('Mana Gaurd','mana_gaurd.png','pheal.wav','Mana gaurds your health','For 5 turns, take damage from mana instead of health','LV: 2',3)
-restore = Active('Restore','restore.png','heal.wav','Restore health','Restore health and gain temp. bonuses for 3 turns','LV: 10',5)
-barrier = Active('Barrier','barrier.png','charge.wav','Create a barrier','For 3 turns, create a shield','LV: 5',5)
-meditate = Active('Meditate','meditate.png','charge.wav','Focus your mind','Next spell deals massive damage','LV: 7',4)
+restore = Active('Restore','restore.png','heal.wav','Restore health','Restore health and gain temp. bonuses for 3 turns','LV: 4',5)
+barrier = Active('Barrier','barrier.png','charge.wav','Create a barrier','For 3 turns, create a shield','LV: 6',5)
+meditate = Active('Meditate','meditate.png','charge.wav','Focus your mind','Next spell deals massive damage','LV: 9',4)
 
 ## Passivesonus
 max_mp_inc = Passive('Max MP +','max_mp_inc.png',None,'Expand your mind','Increases Maximum MP','',7)
-magic_mast = Passive('Spell Mastery','magic_mast.png',None,'Train your skills','Increases Luck/Hit/Crit Chance','LV 5',5)
+magic_mast = Passive('Spell Mastery','magic_mast.png',None,'Train your skills','Increases Luck/Hit/Crit Chance','LV: 5',5)
 mana_armor = Passive('Mana Armor','mana_armor.png',None,'Mana is Armor','Gain bonus Armor/Resist based on Current Max MP','LV: 8',3)
-as_one = Passive('As One','as_one.png',None,'You are one','Set Str/HP = 1, gain bonus MP based on difference','',1)
+as_one = Passive('As One','as_one.png',None,'You are one','Set Str/HP = 1, gain bonus MP based on difference','LV: 5',1)
 
 
 # lists in list
@@ -1204,9 +1227,9 @@ def instructions():
         textbox('''INSTRUCTIONS''',50,red,screenW/2,150)
         textbox('''Use WASD keys to move, press the O key to see your stats''',30,black,screenW/2,screenH/2-100)
         textbox('''Press the I key to see your inventory, the P Key to see your skills''',30,black,screenW/2,screenH/2-55)
-        textbox('''If something has                           use Z or X to use the arrows''',30,black,screenW/2,screenH/2)
-        screen.blit(small_arrow_left,centerIMG(30,30,410,385))
-        screen.blit(small_arrow_right,centerIMG(30,30,485,385))
+        textbox('''If something has                           use A and D to use the arrows''',30,black,screenW/2,screenH/2)
+        screen.blit(small_arrow_left,centerIMG(30,30,390,385))
+        screen.blit(small_arrow_right,centerIMG(30,30,465,385))
         if timer >= 180:
             button('OKAY',30,screenW/2-50,550,100,100,green,lightGreen,leaveSome,None)
         pygame.display.update()
@@ -1741,11 +1764,11 @@ def skillsPage():
                 if event.key == pygame.K_e:
                     inSkill = False
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_z:
+                    if event.key == pygame.K_a:
                         if pg_num - 1 >= 0:
                             pg_num -= 1
                             pg_flip.play()
-                    elif event.key == pygame.K_x:
+                    elif event.key == pygame.K_d:
                         if pg_num + 1 <= len(mage_skills_pg) - 1:
                             pg_num += 1
                             pg_flip.play()
@@ -1820,7 +1843,7 @@ def dmg_calc(used_skill):
             fight_shown_text.append(['You failed to run away!',blue])
             addFightDetailText(fight_shown_text)
         else:
-            leaveFight()
+            player.run_away = True
     elif isinstance(used_skill,Skill): # Skill
         fight_shown_text.append(['You use %s'%used_skill.name,black])
         if isinstance(used_skill,Physical):
@@ -1855,25 +1878,11 @@ def dmg_calc(used_skill):
     time.sleep(1.1)
     if enemy.HP > 0 and not success_run: # enemy counter attack
         enemyAttack()
-    checkActiveDuration()    # ACTIVE DURATION LOSE EFFECT HERE will make function (for loop)
-
-##    if barrier in player.fight_actives: 
-##        if fight_turn == barrier.turnEnd:
-##            barrier.loseEffect()
-##            player.fight_actives.remove(barrier)
-##    if restore in player.fight_actives:
-##        if fight_turn == restore.turnEnd:
-##            restore.loseEffect()
-##            player.fight_actives.remove(restore)
-##    if mana_gaurd in player.fight_actives:
-##        if fight_turn == mana_gaurd.turnEnd:
-##            mana_gaurd.loseEffect()
-##            player.fight_actives.remove(mana_gaurd)
-
+    checkActiveDuration()    # ACTIVE DURATION LOSE EFFECT HERE
 
 def checkActiveDuration():
     for skill in player.fight_actives:
-        if fight_turn == skill.turnEnd:
+        if hasattr(skill,'turnEnd') and fight_turn == skill.turnEnd:
             skill.loseEffect()
             player.fight_actives.remove(skill)
 
@@ -1906,6 +1915,7 @@ def fight():
                               [['',black],['',black],['',black],['',black],['',black],['',black]]]
     player.statUpdate()
     skillUpdate()
+    player.run_away = False
     player.fight_actives = [] # reset active skills
     player.shield_hp = 0 # reset shields
     resetCooldown() # reset cooldown
@@ -1947,11 +1957,11 @@ def fight():
                     inventory()
                 elif event.key == pygame.K_o:
                     statsPage()
-                elif event.key == pygame.K_x:
+                elif event.key == pygame.K_a:
                     if text_detail_pg_num - 1 >= 0:
                         text_detail_pg_num -= 1
                         pg_flip.play()
-                elif event.key == pygame.K_z:
+                elif event.key == pygame.K_d:
                     if text_detail_pg_num + 1 < 2:
                         text_detail_pg_num += 1
                         pg_flip.play()
@@ -1963,6 +1973,8 @@ def fight():
                 fightAgain()
             else:
                 fightAgain()
+        if player.run_away:
+            leaveFight()
         if player.HP <= 0:
             gameover()
         # refresh
@@ -2047,11 +2059,11 @@ def shop():
                     pygame.mixer.music.load('bgm_home.mp3')
                     pygame.mixer.music.play(-1)
                     inStore = False
-                elif event.key == pygame.K_z:
+                elif event.key == pygame.K_a:
                     if pg_num - 1 >= 1:
                         pg_num -= 1
                         pg_flip.play()
-                elif event.key == pygame.K_x:
+                elif event.key == pygame.K_d:
                     if pg_num + 1 <= len(shop_pg):
                         pg_num += 1
                         pg_flip.play()

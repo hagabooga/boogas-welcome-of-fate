@@ -1128,9 +1128,6 @@ def quitGame():
 def leaveSome():
     global inSome
     inSome = False
-    if 'player' in locals():
-        player.Xchange = 0
-        player.Ychange = 0
 
 def gameover():
     global inSome

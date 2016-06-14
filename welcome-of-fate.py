@@ -375,6 +375,8 @@ class Skill(Action):
                 return player.LV >= 8
             elif self == as_one:
                 return player.LV >=5
+            else:
+                return True
             
                 
         else:

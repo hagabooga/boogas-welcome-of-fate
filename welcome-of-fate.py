@@ -502,37 +502,37 @@ def skillUpdate():
         # attack skills
         basic_attack.damage = player.damage
         basic_attack.mana = 0
-        ember.damage = round(75 + (player.mag_damage/2.2)*(1.8 * (1 + ember.rank)))
-        ember.mana = round(60 + ember.damage/(15-ember.rank) + ember.rank * 35)
-        shower.damage = round(50 + (player.mag_damage/2.5)*(1.6 * (1 + shower.rank)))
+        ember.damage = round(100 + (player.mag_damage/1.8)*(2.0 * (1 + ember.rank)))
+        ember.mana = round(60 + ember.damage/(17-ember.rank) + ember.rank * 35)
+        shower.damage = round(80 + (player.mag_damage/2.0)*(1.8 * (1 + shower.rank)))
         shower.mana = round(45 + shower.damage/(20-shower.rank) + shower.rank * 25)
-        breeze.damage = round(38 + (player.mag_damage/2.9)*(1.3 * (1 + breeze.rank)))
+        breeze.damage = round(70 + (player.mag_damage/2.1)*(1.5 * (1 + breeze.rank)))
         breeze.mana = round(30 + breeze.damage/(23-breeze.rank) + breeze.rank * 20)
-        shock.damage = round(100 + (player.mag_damage/1.9)*(2.3 * (1 + shock.rank)))
-        shock.mana = round(80 + shock.damage/(12-shock.rank) + shock.rank * 60)
-        fireball.damage = round(200 + (player.mag_damage/2.2)*(1.8 * (1 + fireball.rank)))
+        shock.damage = round(160 + (player.mag_damage/1.4)*(2.5 * (1 + shock.rank)))
+        shock.mana = round(80 + shock.damage/(15-shock.rank) + shock.rank * 60)
+        fireball.damage = round(200 + (player.mag_damage/1.8)*(1.8 * (1 + fireball.rank)))
         fireball.mana = round(28 + fireball.damage/(15-fireball.rank) + fireball.rank * 75)
-        river.damage = round(160 + (player.mag_damage/2.5)*(1.6 * (1 + river.rank)))
+        river.damage = round(160 + (player.mag_damage/2.0)*(1.6 * (1 + river.rank)))
         river.mana = round(20 + river.damage/(20-river.rank) + river.rank * 60)
-        gust.damage = round(135 + (player.mag_damage/2.9)*(1.3 * (1 + gust.rank)))
+        gust.damage = round(135 + (player.mag_damage/2.1)*(1.3 * (1 + gust.rank)))
         gust.mana = round(14 + gust.damage/(23-gust.rank) + gust.rank * 40)
-        thunderbolt.damage = round(275 + (player.mag_damage/1.9)*(2.3 * (1 + thunderbolt.rank)))
+        thunderbolt.damage = round(275 + (player.mag_damage/1.7)*(2.3 * (1 + thunderbolt.rank)))
         thunderbolt.mana = round(35 + thunderbolt.damage/(12-thunderbolt.rank) + thunderbolt.rank * 100)
-        blaze.damage = round(450 + (player.mag_damage/2.2)*(1.8 * (1 + blaze.rank)))
+        blaze.damage = round(450 + (player.mag_damage/1.8)*(1.8 * (1 + blaze.rank)))
         blaze.mana = round(40 + blaze.damage/(15-blaze.rank) + blaze.rank * 150)
-        waterfall.damage = round(400 + (player.mag_damage/2.5)*(1.6 * (1 + waterfall.rank)))
+        waterfall.damage = round(400 + (player.mag_damage/2.0)*(1.6 * (1 + waterfall.rank)))
         waterfall.mana = round(30 + waterfall.damage/(20-waterfall.rank) + waterfall.rank * 100)
-        whirlwind.damage = round(350 + (player.mag_damage/2.9)*(1.3 * (1 + whirlwind.rank)))
+        whirlwind.damage = round(350 + (player.mag_damage/2.1)*(1.3 * (1 + whirlwind.rank)))
         whirlwind.mana = round(23 + whirlwind.damage/(23-whirlwind.rank) + whirlwind.rank * 80)
-        lightning.damage = round(575 + (player.mag_damage/1.9)*(2.3 * (1 + lightning.rank)))
+        lightning.damage = round(575 + (player.mag_damage/1.7)*(2.3 * (1 + lightning.rank)))
         lightning.mana = round(60 + lightning.damage/(12-lightning.rank) + lightning.rank * 215)
-        inferno.damage = round(750 + (player.mag_damage/2.2)*(1.8 * (1 + inferno.rank)))
+        inferno.damage = round(750 + (player.mag_damage/1.8)*(1.8 * (1 + inferno.rank)))
         inferno.mana = round(75 + inferno.damage/(15-inferno.rank) + inferno.rank * 250)
-        tsunami.damage = round(690 + (player.mag_damage/2.5)*(1.6 * (1 + tsunami.rank)))
+        tsunami.damage = round(690 + (player.mag_damage/2.0)*(1.6 * (1 + tsunami.rank)))
         tsunami.mana = round(60 + tsunami.damage/(20-tsunami.rank) + tsunami.rank * 225)
-        tornado.damage = round(660 + (player.mag_damage/2.9)*(1.3 * (1 + tornado.rank)))
+        tornado.damage = round(660 + (player.mag_damage/2.1)*(1.3 * (1 + tornado.rank)))
         tornado.mana = round(50 + tornado.damage/(23-tornado.rank) + tornado.rank * 200)
-        thunderstorm.damage = round(1000 + (player.mag_damage/1.9)*(2.3 * (1 + thunderstorm.rank)))
+        thunderstorm.damage = round(1000 + (player.mag_damage/1.7)*(2.3 * (1 + thunderstorm.rank)))
         thunderstorm.mana = round(110 + thunderstorm.damage/(12-thunderstorm.rank) + thunderstorm.rank * 325)
         # actives (has unique detail)
         mana_gaurd.mana = round(75*mana_gaurd.rank + (player.maxMP*0.2)/(mana_gaurd.rank+1))
@@ -790,12 +790,12 @@ class Potion(Item):
         self.num_held = 0
     def activate_eff(aPot):
         if aPot == pot_hp:
-            player.restoreHP(30)
+            player.restoreHP(500)
         elif aPot == pot_mp:
-            player.restoreMP(-20)
+            player.restoreMP(400)
         elif aPot == pot_purple:
-            player.restoreHP(25)
-            player.restoreMP(25)
+            player.restoreHP(350)
+            player.restoreMP(350)
         potSound.play()
         if aPot.num_held > 1:
             aPot.num_held -= 1
@@ -1517,7 +1517,7 @@ def slotButton(slot,x,y,w,h):
                                 textbox('Requirements not met!',35,blue,800,235)
                             elif slot != None:
                                     textbox('Not enough SP!',50,blue,800,235)
-                elif pygame.mouse.get_pressed()[2] and inLeanSkill and slot != None: # Remove a skill
+                elif pygame.mouse.get_pressed()[2] and inLearnSkill and slot != None: # Remove a skill
                     removeSkill(slot)
             else: # inFight use skill
                 if slot != None:
@@ -1921,25 +1921,25 @@ def fight():
     player.fight_actives = [] # reset active skills
     player.shield_hp = 0 # reset shields
     resetCooldown() # reset cooldown
-    #Enemy(self, name, img, HP, MP, damage, mag_damage, armor, mag_armor, hit, dodge, crit, loot, exp):
+    #Enemy(self, name, img, HP,MP, damage,mag_damage, armor,mag_armor, hit,dodge,crit, loot,exp):
     #Low level mobs
-    alec = Enemy('Alec','alec.png',125,50,10,10,5,4,95,5,5,18,10)
-    sungmin = Enemy('Sungmin','sungmin.png',150,25,15,4,4,4,95,5,4,20,15)
-    kaelan = Enemy('Kaelan','kaelan.png',135,40,13,6,5,10,95,5,4,25,17)
+    alec = Enemy('Alec','alec.png',300,100, 25,50, 10,40, 95,5,5, 18,10)
+    sungmin = Enemy('Sungmin','sungmin.png',400,75, 35,25, 25,25, 95,5,4, 20,15)
+    kaelan = Enemy('Kaelan','kaelan.png',450,40, 45,25, 40,10, 95,5,4, 25,17)
     #Medium level mobs
-    alicky = Enemy('Alicky','alec.png',180,75,15,25,12,20,90,5,5,25,35)
-    sunger = Enemy('Sunger Munger','sungmin.png',235,40,17,9,16,16,92,5,5,40,32)
-    brownitron = Enemy('Brownitron','kaelan.png',200,55,30,20,10,15,90,5,4,35,29)
-    ryan = Enemy('Ryan','ryan.png',75,50,17,20,0,0,115,40,22,50,40)
-    tina = Enemy('Tina','tina.png',120,100,10,40,8,20,85,10,6,70,62)
+    alicky = Enemy('Alicky','alec.png',1500,500, 60,100, 80,145, 90,5,5, 125,100)
+    sunger = Enemy('Sunger Munger','sungmin.png',1635,350, 100,125, 125,125, 92,5,5, 125,125)
+    brownitron = Enemy('Brownitron','kaelan.png',1825,175, 125,100, 100,100, 87,5,4, 125,150)
+    ryan = Enemy('Ryan','ryan.png',600,30, 100,5, 0,0, 120,42,38, 175,90)
+    tina = Enemy('Tina','tina.png',1300,700, 50,100, 8,80, 85,10,6, 115,100)
     #High level mobs
-    laluche = Enemy('La Lucha Libre','ryan.png',125,75,29,32,0,0,125,45,30,200,130)
-    dyonghae = Enemy('Dyonghae','tina.png',325,125,25,25,20,15,95,5,5,120,140)
-    greasy_booga = Enemy('Greasy Booga','greasy_booga.png',500,200,35,35,40,15,85,10,12,400,300)
+    laluche = Enemy('La Lucha Libre','ryan.png',700,100, 300,10, 0,0, 130,50,42, 400,150)
+    dyonghae = Enemy('Dyonghae','tina.png',1800,1500, 60,200, 100,140, 95,5,5, 200,300)
+    greasy_booga = Enemy('Greasy Booga','greasy_booga.png',3000,750, 200,60, 80,100, 85,10,12, 500,300)
     # Choose random enemy
     if player.LV < 5:
         enemy = random.choice([alec,sungmin,kaelan])
-    elif player.LV < 10:
+    elif player.LV < 11:
         enemy = random.choice([ryan,brownitron,sunger,alicky,tina])
     else:
         enemy = random.choice([laluche,dyonghae,greasy_booga])
@@ -2040,7 +2040,7 @@ def leaveFight():
 
 def runChance():
     chance = 100
-    chance -= round(enemy.HP*0.60)  + enemy.damage*3 - player.LV*35 - player.damage*4
+    chance -= round(enemy.HP/25)  + enemy.damage*3 - player.LV*35 - player.damage*4 - player.mag_damage*4
     success_run = chance >= random.choice(range(101))
     return success_run
 

@@ -118,7 +118,7 @@ class Player(object):
         self.body = shirt_jeans
         # General
         self.LV = 1
-        self.AP = 15
+        self.AP = 5
         self.SP = 5
         self.exp = 0
         self.max_exp = 12
@@ -153,7 +153,7 @@ class Player(object):
         player.statUpdate()
 
     def rem_stat(self,stat):
-        if self.AP >= 0 and not self.AP == 15:
+        if self.AP >= 0 and not self.AP == 5:
             if stat == 's' and self.new_stren > self.old_stren:
                 self.new_stren -= 1
                 self.AP += 1
@@ -174,7 +174,7 @@ class Player(object):
             
     def level_up(self):
         self.LV += 1
-        self.AP = 15
+        self.AP = 5
         self.SP += 1
         self.exp = 0
         self.max_exp = 12 * self.LV + 10
@@ -375,6 +375,7 @@ class Active(Skill):
     def effect(used_skill):
         player.fight_actives.append(used_skill)
         if used_skill == mana_gaurd:
+            mana_gaurd.setTurnEnd(fight_turn,5)
             mana_gaurd.setCooldownEnd(fight_turn,mana_gaurd.cooldown)
         elif used_skill == restore:
             player.restoreHP(restore.hp)
@@ -434,20 +435,20 @@ basic_attack = Physical('Basic Attack','fists.png',None,'Attack with your weapon
 # attack skills
 ember = Magical('Ember','ember.png','fire.wav','Burn the enemy','Small chance to burn','',3)
 shower = Magical('Shower','shower.png','water.wav','Call the rain to fall','Increased hit rate','',3)
-breeze = Magical('Breeze','breeze.png','wind.wav','Blow the enemy away','Increased crit rate','',3)
+breeze = Magical('Breeze','breeze.png','wind.wav','Blow the enemy away','Increased crit rate, decreased hit chance','',3)
 shock = Magical('Shock','shock.png','thunder.wav','Shock with electricity','Small chance to paralyze, small increased crit rate','',3)
 fireball = Magical('Fireball','fireball.png','fire.wav','Lob a ball of fire','Medium rate to burn','LV: 4, Ember: Rank 3',3)
 river = Magical('River','river.png','water.wav','Call a river','More increased hit rate','LV: 4, Shower: Rank: 3',3)
-gust = Magical('Gust','gust.png','wind.wav','Make the enemy fly','More increased crit rate','LV: 4, Breeze: Rank: 3',3)
+gust = Magical('Gust','gust.png','wind.wav','Make the enemy fly','More increased crit rate, decreased hit chance','LV: 4, Breeze: Rank: 3',3)
 thunderbolt = Magical('Thunderbolt','thunderbolt.png','thunder.wav','Pikachu','Medium chance to paralyze, increased crit rate','LV: 4, Shock: Rank: 3',3)
 blaze = Magical('Blaze','blaze.png','fire.wav','Set enemy ablaze','High chance to burn','LV: 10, Fireball: Rank: 3',3)
-waterfall = Magical('Waterfall','waterfall.png','water.wav','A fall of water','Greatly increased hit rate','LV: 10, River: Rank: 3',3)
-whirlwind = Magical('Whirlwind','whirlwind.png','wind.wav','A strong wind','Greatly increased crit rate','LV: 10, Gust: Rank: 3',3)
+waterfall = Magical('Waterfall','waterfall.png','water.wav','A fall of water','Greatly increased hit rate', 'LV: 10, River: Rank: 3',3)
+whirlwind = Magical('Whirlwind','whirlwind.png','wind.wav','A strong wind','Greatly increased crit rate, decreased hit chance','LV: 10, Gust: Rank: 3',3)
 lightning = Magical('Lightning','lightning.png','thunder.wav','Electrify the enemy','High chance to paralyze, more increased crit rate',\
                     'LV: 10, Thunderbolt: Rank: 3',3)
 inferno = Magical('Inferno','inferno.png','fire.wav','The strongest flames in the game','Higher chance to burn','LV: 18, Blaze: Rank: 3',3)
 tsunami = Magical('Tsunami','tsunami.png','water.wav','Wash away the enemy','Greater increased hit rate','LV: 18, Waterfall: Rank: 3',3)
-tornado = Magical('Tornado','tornado.png','wind.wav','Blow away the enemy','Greater increased crit rate','LV: 18, Whirlwind: Rank: 3',3)
+tornado = Magical('Tornado','tornado.png','wind.wav','Blow away the enemy','Greater increased crit rate, decreased hit chance','LV: 18, Whirlwind: Rank: 3',3)
 thunderstorm = Magical('Thunderstorm','thunderstorm.png','thunder.wav','A storm of lightning','Higher chance to paralyze, Greatly increased crit rate',\
                        'LV: 18, Lightning: Rank: 3',3)
 ## Actives
@@ -463,7 +464,6 @@ mana_armor = Passive('Mana Armor','mana_armor.png',None,'Mana is Armor','Gain bo
 as_one = Passive('As One','as_one.png',None,'You are one','Set Str/HP = 1, gain bonus MP based on difference','',1)
 
 
-
 # lists in list
 mage_skills_pg = [[ember,shower,breeze,shock,\
                    fireball,river,gust,thunderbolt,\
@@ -477,38 +477,38 @@ def skillUpdate():
         # attack skills
         basic_attack.damage = player.damage
         basic_attack.mana = 0
-        ember.damage = round(25 + (player.mag_damage/2.5)*(2.35 * (1 + ember.rank)))
-        ember.mana = round(5 + ember.damage/15 + ember.rank * 2)
-        shower.damage = round(14 + (player.mag_damage/2.5)*(2.0 * (1 + shower.rank)))
-        shower.mana = round(4)
-        breeze.damage = round(10)
-        breeze.mana = round(3)
-        shock.damage = round(30)
-        shock.mana = round(9)
-        fireball.damage = round(40)
-        fireball.mana = round(28)
-        river.damage = round(28)
-        river.mana = round(20)
-        gust.damage = round(20)
-        gust.mana = round(14)
-        thunderbolt.damage = round(60)
-        thunderbolt.mana = round(35)
-        blaze.damage = round(75)
-        blaze.mana = round(40)
-        waterfall.damage = round(60)
-        waterfall.mana = round(30)
-        whirlwind.damage = round(40)
-        whirlwind.mana = round(23)
-        lightning.damage = round(100)
-        lightning.mana = round(60)
-        inferno.damage = round(135)
-        inferno.mana = round(75)
-        tsunami.damage = round(95)
-        tsunami.mana = round(60)
-        tornado.damage = round(78)
-        tornado.mana = round(50)
-        thunderstorm.damage = round(180)
-        thunderstorm.mana = round(110)
+        ember.damage = round(75 + (player.mag_damage/2.2)*(1.8 * (1 + ember.rank)))
+        ember.mana = round(60 + ember.damage/(15-ember.rank) + ember.rank * 35)
+        shower.damage = round(50 + (player.mag_damage/2.5)*(1.6 * (1 + shower.rank)))
+        shower.mana = round(45 + shower.damage/(20-shower.rank) + shower.rank * 25)
+        breeze.damage = round(38 + (player.mag_damage/2.9)*(1.3 * (1 + breeze.rank)))
+        breeze.mana = round(30 + breeze.damage/(23-breeze.rank) + breeze.rank * 20)
+        shock.damage = round(100 + (player.mag_damage/1.9)*(2.3 * (1 + shock.rank)))
+        shock.mana = round(80 + shock.damage/(12-shock.rank) + shock.rank * 60)
+        fireball.damage = round(200 + (player.mag_damage/2.2)*(1.8 * (1 + fireball.rank)))
+        fireball.mana = round(28 + fireball.damage/(15-fireball.rank) + fireball.rank * 75)
+        river.damage = round(160 + (player.mag_damage/2.5)*(1.6 * (1 + river.rank)))
+        river.mana = round(20 + river.damage/(20-river.rank) + river.rank * 60)
+        gust.damage = round(135 + (player.mag_damage/2.9)*(1.3 * (1 + gust.rank)))
+        gust.mana = round(14 + gust.damage/(23-gust.rank) + gust.rank * 40)
+        thunderbolt.damage = round(275 + (player.mag_damage/1.9)*(2.3 * (1 + thunderbolt.rank)))
+        thunderbolt.mana = round(35 + thunderbolt.damage/(12-thunderbolt.rank) + thunderbolt.rank * 100)
+        blaze.damage = round(450 + (player.mag_damage/2.2)*(1.8 * (1 + blaze.rank)))
+        blaze.mana = round(40 + blaze.damage/(15-blaze.rank) + blaze.rank * 150)
+        waterfall.damage = round(400 + (player.mag_damage/2.5)*(1.6 * (1 + waterfall.rank)))
+        waterfall.mana = round(30 + waterfall.damage/(20-waterfall.rank) + waterfall.rank * 100)
+        whirlwind.damage = round(350 + (player.mag_damage/2.9)*(1.3 * (1 + whirlwind.rank)))
+        whirlwind.mana = round(23 + whirlwind.damage/(23-whirlwind.rank) + whirlwind.rank * 80)
+        lightning.damage = round(575 + (player.mag_damage/1.9)*(2.3 * (1 + lightning.rank)))
+        lightning.mana = round(60 + lightning.damage/(12-lightning.rank) + lightning.rank * 215)
+        inferno.damage = round(750 + (player.mag_damage/2.2)*(1.8 * (1 + inferno.rank)))
+        inferno.mana = round(75 + inferno.damage/(15-inferno.rank) + inferno.rank * 250)
+        tsunami.damage = round(690 + (player.mag_damage/2.5)*(1.6 * (1 + tsunami.rank)))
+        tsunami.mana = round(60 + tsunami.damage/(20-tsunami.rank) + tsunami.rank * 225)
+        tornado.damage = round(660 + (player.mag_damage/2.9)*(1.3 * (1 + tornado.rank)))
+        tornado.mana = round(50 + tornado.damage/(23-tornado.rank) + tornado.rank * 200)
+        thunderstorm.damage = round(1000 + (player.mag_damage/1.9)*(2.3 * (1 + thunderstorm.rank)))
+        thunderstorm.mana = round(110 + thunderstorm.damage/(12-thunderstorm.rank) + thunderstorm.rank * 325)
         # actives (has unique detail)
         mana_gaurd.mana = round(75*mana_gaurd.rank + (player.maxMP*0.2)/(mana_gaurd.rank+1))
         mana_gaurd.cooldown = 5
@@ -923,13 +923,12 @@ shop_pg = [shop_weapons_1,shop_body_1,shop_L_hand_1] # list in list
 # Starting Weapons
 fists = Axe('Fists','fists.png','Bare hands (cannot unequip)',1,1,\
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-basic_wand = Wand('Basic Wand','bas_wand.png','A basic wand',2,5,\
+basic_wand = Wand('Basic Wand','bas_wand.png','A basic wand',2,6,\
                     0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-basic_dag = Dagger('Basic Dagger','bas_dag.png','A basic dagger',4,3,\
+basic_dag = Dagger('Basic Dagger','bas_dag.png','A basic dagger',4,4,\
                    0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-basic_sword = Sword('Basic Sword','normal.png','A basic sword',6,1,\
+basic_sword = Sword('Basic Sword','normal.png','A basic sword',6,2,\
                      2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-
 # Strating armors
 fap = L_hand('Left Hand','start_left.png','Fap Fap Fap (cannot unequip)',\
                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -988,10 +987,10 @@ class Mage(Player):
         super(Mage,self).__init__()
         self.job = 'Mage'
     def maxHPU(self):
-        stat = round(75 + self.stren*.9 + self.LV*17)
+        stat = round(100 + self.stren*13.47 + self.LV*50)
         return stat
     def maxMPU(self):
-        stat = round(125 + self.intel*1.4 + self.LV*30)
+        stat = round(250 + self.intel*23.273 + self.LV*100)
         return stat
     def damageU(self):
         stat = round(6 + 3*self.LV + self.stren/4.5 + self.weapon.damage + self.weapon.damage*(1+self.stren/50))
@@ -1000,19 +999,19 @@ class Mage(Player):
         stat = round(11 + 7.5*self.LV + self.intel/3.3 + self.weapon.mag_damage + self.weapon.mag_damage*(1+self.intel/50))
         return stat
     def armorU(self):
-        stat = 1 + round(self.stren/40 + self.intel/40)
+        stat = 10 + round(self.stren/2 + self.intel/5 + self.agi/3)
         return stat
     def mag_armorU(self):
-        stat = 3 + round(self.intel/16)
+        stat = 15 + round(self.intel/2)
         return stat
     def hitU(self):
-        stat = 100 + round(self.agi/5 + self.luck/6)
+        stat = 100 + round(self.agi/6 + self.luck/5)
         return stat
     def dodgeU(self):
-        stat = 1 + round(self.agi/14 + self.luck/14)
+        stat = 1 + round(self.agi/5 + self.luck/4)
         return stat
     def critU(self):
-        stat = 3 + round(self.agi/14 + self.luck/14)
+        stat = 3 + round(self.agi/5 + self.luck/4)
         return stat
 
 class Rouge(Player):
@@ -1490,9 +1489,10 @@ def slotButton(slot,x,y,w,h):
                     itemValue(slot)
                     if pygame.mouse.get_pressed()[0]:
                         if hasattr(slot,'cooldownEnd'):
-                            textbox('On cooldown! %i Turns Left'%(slot.cooldownEnd - fight_turn),30,blue,800,235)
                             if slot.cooldownEnd <= fight_turn:
                                 del slot.cooldownEnd
+                            else:
+                                textbox('On cooldown! %i Turns Left'%(slot.cooldownEnd - fight_turn),30,blue,800,235)
                         elif player.MP - slot.mana < 0: # check if player has enough mana
                             textbox('Not enough MP!',50,blue,800,235)
                         else:
@@ -1845,15 +1845,27 @@ def dmg_calc(used_skill):
     time.sleep(1.1)
     if enemy.HP > 0 and not success_run: # enemy counter attack
         enemyAttack()
-    if barrier in player.fight_actives: # ACTIVE DURATION LOSE EFFECT HERE will make function (for loop)
-        if fight_turn == barrier.turnEnd:
-            barrier.loseEffect()
-            player.fight_actives.remove(barrier)
-    if restore in player.fight_actives:
-        if fight_turn == restore.turnEnd:
-            restore.loseEffect()
-            player.fight_actives.remove(restore)
-            
+    checkActiveDuration()    # ACTIVE DURATION LOSE EFFECT HERE will make function (for loop)
+
+##    if barrier in player.fight_actives: 
+##        if fight_turn == barrier.turnEnd:
+##            barrier.loseEffect()
+##            player.fight_actives.remove(barrier)
+##    if restore in player.fight_actives:
+##        if fight_turn == restore.turnEnd:
+##            restore.loseEffect()
+##            player.fight_actives.remove(restore)
+##    if mana_gaurd in player.fight_actives:
+##        if fight_turn == mana_gaurd.turnEnd:
+##            mana_gaurd.loseEffect()
+##            player.fight_actives.remove(mana_gaurd)
+
+
+def checkActiveDuration():
+    for skill in player.fight_actives:
+        if fight_turn == skill.turnEnd:
+            skill.loseEffect()
+            player.fight_actives.remove(skill)
 
 def addFightDetailText(aList):
     global fight_detail_text_list

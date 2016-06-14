@@ -883,6 +883,7 @@ smile = Body('Smile','smile.png','A smile can make you happy',\
              0, 0, 0, 0, 0, 0, 0, 0, 50, 200, 0, 0, 0, 5000)
 god = Body('God of Elements','god.png','Control the elements as you will',\
            0, 0, 0, 0, 0, 0, 0, 0, 500, 800, 0, 0, 0, 10000)
+
 shop_body_1 = [bronze_body,iron_body,steel_body,dia_body,cloak,black_cloak,stealth_cloak,ass_cloak,robe,mag_robe,star_robe,element_robe,\
        leather,chain,machine,reflect,blanket,toast,smile,god]
 givebdesc(shop_body_1)
@@ -916,6 +917,9 @@ shop_L_hand_1 = [shld_wood,shld_mana,shld_star,shld_element,\
                  None,None,None,None]
 
 givebdesc(shop_L_hand_1[0:8])
+
+# FOR ALPHA USE
+shop_mage = []
 
 shop_pg = [shop_weapons_1,shop_body_1,shop_L_hand_1] # list in list
 
@@ -1124,6 +1128,9 @@ def quitGame():
 def leaveSome():
     global inSome
     inSome = False
+    if 'player' in locals():
+        player.Xchange = 0
+        player.Ychange = 0
 
 def gameover():
     global inSome
@@ -1190,15 +1197,21 @@ def checkLenName(name):
 def instructions():
     global inSome
     inSome = True
+    timer = 0
     while inSome:
+        timer += 1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quitGame()
         screen.fill(white)
         textbox('''INSTRUCTIONS''',50,red,screenW/2,150)
-        textbox('''Use the arrow keys to move, press the 'O' key to see your stats''',30,black,screenW/2,screenH/2)
-        textbox('''Press the 'I' key to see your inventory, the 'P' Key to see your skills''',30,black,screenW/2,screenH/2+45)
-        button('OKAY',30,screenW/2-50,550,100,100,green,lightGreen,leaveSome,None)
+        textbox('''Use WASD keys to move, press the O key to see your stats''',30,black,screenW/2,screenH/2-100)
+        textbox('''Press the I key to see your inventory, the P Key to see your skills''',30,black,screenW/2,screenH/2-55)
+        textbox('''If something has                           use Z or X to use the arrows''',30,black,screenW/2,screenH/2)
+        screen.blit(small_arrow_left,centerIMG(30,30,410,385))
+        screen.blit(small_arrow_right,centerIMG(30,30,485,385))
+        if timer >= 180:
+            button('OKAY',30,screenW/2-50,550,100,100,green,lightGreen,leaveSome,None)
         pygame.display.update()
 
 def stats():
@@ -1523,9 +1536,9 @@ def slotButton(slot,x,y,w,h):
             itemValue(slot)
             if pygame.mouse.get_pressed()[0]:
                 if player.numItemInv == player.numMaxItem:
-                    textbox('Full inventory!',30,red,screenW/2,400)
+                    textbox('Full inventory!',30,red,screenW/2,800)
                 elif slot in player.inv or slot in [player.head,player.weapon,player.body,player.lefthand]:
-                    textbox('You already have one!',30,red,screenW/2,400)
+                    textbox('You already have one!',30,red,screenW/2,800)
                 else:
                     buyItem(slot)
 
@@ -1562,7 +1575,7 @@ def sellItem(slot):
             if event.type == pygame.QUIT:
                 quitGame()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_y:
+                if event.key == pygame.K_q:
                     if isinstance(slot,Potion) and slot.num_held > 1:
                             slot.num_held -= 1
                             player.cash += sell_price
@@ -1574,12 +1587,12 @@ def sellItem(slot):
                     sound = pygame.mixer.Sound('buy.wav')
                     sound.play()
                     want = False
-                elif event.key == pygame.K_n:
+                elif event.key == pygame.K_e:
                     want = False
         textbox('Are you sure you want to sell this?',65,black,screenW/2,200)
         textbox('%s'%slot.name,80,blue,screenW/2,315)
         textbox('$%i + $%i = $%i'%(player.cash,sell_price,(player.cash+sell_price)),65,black,screenW/2,440)
-        textbox('Press (Y/N)',65,black,screenW/2,550)
+        textbox('Press (Q: Yes /E: No)',65,black,screenW/2,550)
         pygame.display.update()
 
 def addItem(item):
@@ -1598,7 +1611,7 @@ def addItem(item):
 def buyItem(slot):
     global inSome
     if player.cash < slot.cost:
-        canUseSkill('money')
+        textbox('Not enough gold!',30,blue,screenW/2,400)
     else:
         want = True
         while want:
@@ -1607,34 +1620,34 @@ def buyItem(slot):
                 if event.type == pygame.QUIT:
                     quitGame()
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_y:
+                    if event.key == pygame.K_q:
                         player.cash -= slot.cost
                         addItem(slot)
                         buySound.play()
                         want = False
-                    elif event.key == pygame.K_n:
+                    elif event.key == pygame.K_e:
                         want = False
             textbox('Are you sure you want to buy this?',65,black,screenW/2,200)
             textbox('%s'%slot.name,80,red,screenW/2,315)
             textbox('$%i - $%i = $%i'%(player.cash,slot.cost,(player.cash-slot.cost)),65,black,screenW/2,440)
-            textbox('Press (Y/N)',65,black,screenW/2,550)
+            textbox('Press (Q: Yes /E: No)',65,black,screenW/2,550)
             status_bar()
             pygame.display.update()
 
 def itemValue(slot):
-    if inStore and not inInv and slot != None:
-        textbox(slot.name,60,black,screenW/2,125)
-        textbox('%s (%s)'%(slot.desc,slot.type),20,black,screenW/2,185)
+    if inStore and not inInv and slot != None: # IN STORE DETAILS
+        textbox(slot.name,60,black,800,125)
+        textbox('%s (%s)'%(slot.desc,slot.type),20,black,800,185)
         if isinstance(slot,Weapon):
-            textbox('ATK: %i/MATK: %i Cost: $%i'%(slot.damage,slot.mag_damage,slot.cost),32,black,screenW/2,228)
+            textbox('ATK: %i/MATK: %i Cost: $%i'%(slot.damage,slot.mag_damage,slot.cost),32,black,800,228)
         elif isinstance(slot,Armor):
-            textbox('Cost: $%i'%slot.cost,32,black,screenW/2,228)
+            textbox('Cost: $%i'%slot.cost,32,black,800,228)
         if len(slot.bdesc_list) == 0:
-            textbox('No Bonus',25,black,screenW/2,275)
+            textbox('No Bonus',25,black,800,275)
         else:
             y = 0
             for index in range(len(slot.bdesc_list)):
-                textbox(slot.bdesc_list[index],25,black,screenW/2,275+y)
+                textbox(slot.bdesc_list[index],25,black,800,275+y)
                 y += 35
     elif inSkill or inLearnSkill:
             textbox(slot.name,75,black,800,100)
@@ -1675,15 +1688,15 @@ def itemValue(slot):
             textbox('Cost: $%i'%(slot.cost),40,black,screenW/2,175)
             textbox(slot.bdesc,40,black,screenW/2,250)
 
-def canUseSkill(why):
-    if why == 'rank':
-        textbox('Skill not yet learned!',30,red,screenW/2,260)
-    elif why == 'skill':
-        textbox('Not enough SP!',30,blue,screenW/2,260)
-    elif why == 'money':
-         textbox('Not enough gold!',30,blue,screenW/2,400)
-    else:
-        textbox('Not enough mana!',30,blue,screenW/2,260)
+##def canUseSkill(why):
+##    if why == 'rank':
+##        textbox('Skill not yet learned!',30,red,screenW/2,260)
+##    elif why == 'skill':
+##        textbox('Not enough SP!',30,blue,screenW/2,260)
+##    elif why == 'money':
+##         textbox('Not enough gold!',30,blue,screenW/2,400)
+##    else:
+##        textbox('Not enough mana!',30,blue,screenW/2,260)
 
 def leaveLearnSkill():
     global inLearnSkill
@@ -1701,7 +1714,7 @@ def learnedSkillsPage():
             if event.type == pygame.QUIT:
                 quitGame()
             elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_p and inFight:
+                    if event.key == pygame.K_e and inFight:
                         leaveLearnSkill()
         screen.fill(grey)
         textbox('Learned Skills',60,black,280,50)
@@ -1712,7 +1725,7 @@ def learnedSkillsPage():
             textbox('Hover over a skill and right click to forget the skill',20,black,300,685)
             button('Leave',30,660,575,100,100,red,lightRed,leaveLearnSkill,None)
         else:
-            textbox('Press P to leave',20,black,300,680)
+            textbox('Press E to leave',20,black,300,680)
         matrixSlot(4,4,player.learned_skills,40,125,140,140)
         status_bar()
         pygame.display.update()
@@ -1728,14 +1741,14 @@ def skillsPage():
             if event.type == pygame.QUIT:
                 quitGame()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_p:
+                if event.key == pygame.K_e:
                     inSkill = False
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_LEFT:
+                    if event.key == pygame.K_z:
                         if pg_num - 1 >= 0:
                             pg_num -= 1
                             pg_flip.play()
-                    elif event.key == pygame.K_RIGHT:
+                    elif event.key == pygame.K_x:
                         if pg_num + 1 <= len(mage_skills_pg) - 1:
                             pg_num += 1
                             pg_flip.play()
@@ -1744,7 +1757,7 @@ def skillsPage():
         if player.job == 'Mage':
             matrixSlot(4,4,mage_skills_pg[pg_num],40,125,140,140)
         textbox('SP: %i'%player.SP,50,black,905,630)
-        textbox('Press P to leave',20,black,300,685)
+        textbox('Press E to leave',20,black,300,685)
         button('Learned Skills',30,660,575,100,100,red,lightRed,learnedSkillsPage,None)
         if pg_num - 1 >= 0:
             screen.blit(small_arrow_left,centerIMG(30,30,25,75))
@@ -1937,11 +1950,11 @@ def fight():
                     inventory()
                 elif event.key == pygame.K_o:
                     statsPage()
-                elif event.key == pygame.K_LEFT:
+                elif event.key == pygame.K_x:
                     if text_detail_pg_num - 1 >= 0:
                         text_detail_pg_num -= 1
                         pg_flip.play()
-                elif event.key == pygame.K_RIGHT:
+                elif event.key == pygame.K_z:
                     if text_detail_pg_num + 1 < 2:
                         text_detail_pg_num += 1
                         pg_flip.play()
@@ -2025,10 +2038,7 @@ def shop():
     inStore = True
     pygame.mixer.music.load('bgm_shop.ogg')
     pygame.mixer.music.play(-1)
-    left = pygame.image.load('left.png')
-    right = pygame.image.load('right.png')
     pg_num = 1
-    titles = ['Weapons','Armors','Shields','Helmets','Power Ups','Enchantments']
     ##
     while inStore:
         screen.fill(lime)
@@ -2036,50 +2046,33 @@ def shop():
             if event.type == pygame.QUIT:
                 quitGame()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_s:
+                if event.key == pygame.K_e:
                     pygame.mixer.music.load('bgm_home.mp3')
                     pygame.mixer.music.play(-1)
                     inStore = False
-                elif event.key == pygame.K_LEFT:
-                    if pg_num >= 2:
+                elif event.key == pygame.K_z:
+                    if pg_num - 1 >= 1:
                         pg_num -= 1
                         pg_flip.play()
-                        time.sleep(0.4)
-                elif event.key == pygame.K_RIGHT:
-                    if pg_num >= 1 and pg_num < 4:
+                elif event.key == pygame.K_x:
+                    if pg_num + 1 <= len(shop_pg):
                         pg_num += 1
                         pg_flip.play()
-                        time.sleep(0.4)
                 elif event.key == pygame.K_i:
                     inventory()
                 elif event.key == pygame.K_o:
                     statsPage()
         # display items
-        x = 0
-        y = 0
-        index = 0
-        for column in range(2):
-            for slot in range(5):
-                slotButton(shop_pg[pg_num - 1][index],50+x,85+y,100,100)
-                slotButton(shop_pg[pg_num - 1][5+index],175+x,85+y,100,100)
-                index += 1
-                y += 125
-            x +=690
-            y = 0
-            index += 5
+        matrixSlot(4,5,shop_pg[pg_num-1],50,60,125,125)
         ################
         # arrows
-        if pg_num >= 1 and pg_num <4:
-            screen.blit(right,centerIMG(150,150,screenW/2+100,550))
-        if pg_num >= 2:
-            screen.blit(left,centerIMG(150,150,screenW/2-100,550))
+        if pg_num - 1 >= 1:
+            screen.blit(small_arrow_left,centerIMG(30,30,25,screenH/2-30))
+        if pg_num + 1 <= len(shop_pg):
+            screen.blit(small_arrow_right,centerIMG(30,30,560,screenH/2-30))
         #########################
-        # titles col
-        textbox(titles[pg_num-1],30,black,160,40)
-        textbox(titles[pg_num-1],30,black,850,40)
         textbox(str(pg_num),65,black,screenW/2,650)
-        textbox('Use the arrow keys to switch pages',20,black,screenW/2,450)
-        textbox('Press S to leave',15,black,screenW/2,485)
+        textbox('Press E to leave',15,black,900,485)
         status_bar()
         pygame.display.update()
 
@@ -2129,11 +2122,11 @@ def hospital():
             if event.type == pygame.QUIT:
                 quitGame()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_h:
+                if event.key == pygame.K_e:
                     inHosp = False
         matrixSlot(6,3,hospital_pots,150,300,125,125)
         textbox('(Potions are usable in battle)',20,black,300,675)
-        textbox('Press H to leave',20,black,800,675)
+        textbox('Press E to leave',20,black,800,675)
         status_bar()
         pygame.display.update()
 
@@ -2166,10 +2159,10 @@ def game_loop():
     # player coordinates
     player.X = 500
     player.Y = 600
-    playerW = 90
-    playerH = 90
-    playerXchange = 0
-    playerYchange = 0
+    player.W = 90
+    player.H = 90
+    player.Xchange = 0
+    player.Ychange = 0
     player.direction = 0
     # restore HP/MP upon starting and give some starting cash
     player.healFullHP()
@@ -2184,58 +2177,57 @@ def game_loop():
             if event.type == pygame.QUIT:
                 quitGame()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
+                if event.key == pygame.K_a:
                     player.img = rotate_img(player.direction,2,player.img)
                     player.direction = 2
-                    playerXchange = -5
-                elif event.key == pygame.K_RIGHT:
+                    player.Xchange = -5
+                elif event.key == pygame.K_d:
                     player.img = rotate_img(player.direction,6,player.img)
                     player.direction = 6
-                    playerXchange = 5
-                elif event.key == pygame.K_UP:
+                    player.Xchange = 5
+                elif event.key == pygame.K_w:
                     player.img = rotate_img(player.direction,0,player.img)
                     player.direction = 0
-                    playerYchange = -5
-                elif event.key == pygame.K_DOWN:
+                    player.Ychange = -5
+                elif event.key == pygame.K_s:
                     player.img = rotate_img(player.direction,4,player.img)
                     player.direction = 4
-                    playerYchange = 5
+                    player.Ychange = 5
                 elif event.key == pygame.K_i:
                     inventory()
                 elif event.key == pygame.K_o:
                     statsPage()
                 elif event.key == pygame.K_p:
                     skillsPage()
-                elif event.key == pygame.K_h:
+                elif event.key == pygame.K_e:
                     if (player.X + 30 >= 470 and player.X <= 576) and (player.Y+30 >= 485 and player.Y <= 556):
                         hospital()
-                elif event.key == pygame.K_s:
-                    if (player.X + 30 >= 87 and player.X <= 215) and (player.Y+30 >= 132 and player.Y <= 265):
+                    elif (player.X + 30 >= 87 and player.X <= 215) and (player.Y+30 >= 132 and player.Y <= 265):
                         shop()
             elif event.type == pygame.KEYUP: # lifts up key
-                if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
-                    playerXchange = 0
-                if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
-                    playerYchange = 0
+                if event.key == pygame.K_a or event.key == pygame.K_d:
+                    player.Xchange = 0
+                if event.key == pygame.K_w or event.key == pygame.K_s:
+                    player.Ychange = 0
         # boundary
-        if not player.X + playerXchange < 0 and not player.X + playerXchange + playerW > screenW:
-            player.X += playerXchange
-        if not player.Y + playerYchange < 0 and not player.Y + playerYchange + playerH > screenH :
-            player.Y += playerYchange
+        if not player.X + player.Xchange < 0 and not player.X + player.Xchange + player.W > screenW:
+            player.X += player.Xchange
+        if not player.Y + player.Ychange < 0 and not player.Y + player.Ychange + player.H > screenH :
+            player.Y += player.Ychange
         # Level one dungeon
         if player.X > screenW - 100:
             pygame.mixer.music.stop()
             fight()
-            playerXchange = 0
-            playerYchange = 0
+            player.Xchange = 0
+            player.Ychange = 0
         #refresh
         # buy heal
         elif (player.X + 30 >= 470 and player.X <= 576) and (player.Y+30 >= 485 and player.Y <= 556):
-            textbox('You can heal and buy potions here. Press H to enter.',30,red,screenW/2,250)
+            textbox('You can heal and buy potions here. Press E to enter.',30,red,screenW/2,250)
         # shop
         elif (player.X + 30 >= 87 and player.X <= 215) and (player.Y+30 >= 132 and player.Y <= 265):
-            textbox('You can buy stuff here. Press S to shop.',30,black,screenW/2,250)
-        screen.blit(player.img,(player.X,player.Y))
+            textbox('You can buy stuff here. Press E to shop.',30,black,screenW/2,250)
+        screen.blit(player.img,centerIMG(player.W,player.H,player.X,player.Y))
         status_bar()
         pygame.display.update()
 

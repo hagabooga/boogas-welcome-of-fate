@@ -2091,8 +2091,8 @@ def runChance():
 def shop():
     global inStore
     inStore = True
-    pygame.mixer.music.load('bgm_shop.ogg')
-    pygame.mixer.music.play(-1)
+##    pygame.mixer.music.load('bgm_shop.ogg')
+##    pygame.mixer.music.play(-1)
     pg_num = 1
     ##
     while inStore:
@@ -2102,8 +2102,8 @@ def shop():
                 quitGame()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_e:
-                    pygame.mixer.music.load('bgm_home.mp3')
-                    pygame.mixer.music.play(-1)
+##                    pygame.mixer.music.load('bgm_home.mp3')
+##                    pygame.mixer.music.play(-1)
                     inStore = False
                 elif event.key == pygame.K_a:
                     if pg_num - 1 >= 1:

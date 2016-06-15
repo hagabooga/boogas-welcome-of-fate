@@ -2205,10 +2205,10 @@ def game_loop():
     clock.tick(60)
     setInv()
     setLearnedSkills()
-    addItem(katana)
-    addItem(shld_star)
-    addItem(bronze_body)
-    addItem(staff)
+##    addItem(katana)
+##    addItem(shld_star)
+##    addItem(bronze_body)
+##    addItem(staff)
     # images in game
     bg = pygame.image.load('hometown.png')
     # player coordinates

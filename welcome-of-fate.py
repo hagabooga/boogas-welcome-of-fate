@@ -346,6 +346,7 @@ class Skill(Action):
             elif self == whirlwind:
                 return player.LV >= 10 and gust.rank >= 3
             elif self == lightning:
+
                 return player.LV >= 10 and thunderbolt.rank >= 3
             elif self == inferno:
                 return player.LV >= 18 and blaze.rank >= 3
@@ -779,31 +780,6 @@ class Shuriken(Weapon):
         super(Shuriken,self).__init__(name, img,desc,watk,wmatk,\
                  bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost)
         self.type = 'Shuriken'
-        
-class Potion(Item):
-    def __init__(self,name,img,desc,bdesc,\
-                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost):
-        super(Potion,self).__init__(name,img,desc,\
-                                    bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost)
-        self.type = 'Potion'
-        self.bdesc = bdesc
-        self.num_held = 0
-    def activate_eff(aPot):
-        if aPot == pot_hp:
-            player.restoreHP(500)
-        elif aPot == pot_mp:
-            player.restoreMP(400)
-        elif aPot == pot_purple:
-            player.restoreHP(350)
-            player.restoreMP(350)
-        potSound.play()
-        if aPot.num_held > 1:
-            aPot.num_held -= 1
-        else:
-            aPot.num_held -= 1
-            player.numItemInv -= 1
-            player.inv.remove(aPot)
-            player.inv.append(None)
             
 def givebdesc(aList):
     for item in aList:
@@ -982,15 +958,47 @@ china_hat = Head('China Hat','start_head.png','Offers no protection (cannot uneq
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 shirt_jeans = Body('Shirt and Jeans','start_body.png','Offers no protection (cannot unequip)',\
                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-start_items = [fap,china_hat,shirt_jeans,fists,basic_wand,basic_dag,basic_sword]
+
+no_left = L_hand('Cannot Equip','no.png','Two-handed weapon equipped',\
+                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+
+start_items = [fap,china_hat,shirt_jeans,fists,basic_wand,basic_dag,basic_sword,no_left]
 givebdesc(start_items)
+
+
+        
+class Potion(Item):
+    def __init__(self,name,img,desc,bdesc,\
+                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost):
+        super(Potion,self).__init__(name,img,desc,\
+                                    bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost)
+        self.type = 'Potion'
+        self.bdesc = bdesc
+        self.num_held = 0
+    def activate_eff(aPot):
+        if aPot == pot_hp:
+            player.restoreHP(500)
+        elif aPot == pot_mp:
+            player.restoreMP(400)
+        elif aPot == pot_purple:
+            player.restoreHP(350)
+            player.restoreMP(350)
+        potSound.play()
+        if aPot.num_held > 1:
+            aPot.num_held -= 1
+        else:
+            aPot.num_held -= 1
+            player.numItemInv -= 1
+            player.inv.remove(aPot)
+            player.inv.append(None)
+
 # Potions
-pot_hp = Potion('Health Potion','pot_hp.png','A simple potion that restores health','Restore: +30 HP',\
-           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50)
-pot_mp = Potion('Mana Potion','pot_mp.png','A simple potion that restores mana','Restore: +20 MP',\
-           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50)
-pot_purple = Potion('Purple Potion','pot_purple.png','A potion that restores both health and mana','Restore: +25 HP, +25 MP',\
-           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 125)
+pot_hp = Potion('Health Potion','pot_hp.png','A simple potion that restores health','Restore: +500 HP',\
+           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150)
+pot_mp = Potion('Mana Potion','pot_mp.png','A simple potion that restores mana','Restore: +400 MP',\
+           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 200)
+pot_purple = Potion('Purple Potion','pot_purple.png','A potion that restores both health and mana','Restore: +350 HP, +350 MP',\
+           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 325)
 hospital_pots = [pot_hp,pot_mp,pot_purple]
 for i in range(15):
     hospital_pots.append(None)
@@ -1357,6 +1365,11 @@ def statsPage():
         
 def checkEquip(slot):
     if isinstance(slot,Weapon) and slot is not player.weapon and slot != player.weapon: # and player.weapon == fists
+        if isinstance(slot,Staff):
+            if player.lefthand != fap:
+                player.inv[player.numItemInv] = player.lefthand
+                player.numItemInv += 1
+            player.lefthand = no_left
         if slot.weapon_requirement():
             saved_item = None
             if player.weapon != fists and slot != player.weapon: # if has weapon equipped already
@@ -1377,6 +1390,8 @@ def checkEquip(slot):
             textbox('Requirements not met!',50,black,500,500)
     # remove weapon
     elif slot is player.weapon and player.weapon != fists and player.numItemInv < player.numMaxItem:
+        if isinstance(slot,Staff):
+            player.lefthand = fap
         player.weapon.noBonus()
         player.inv[player.numItemInv] = player.weapon
         player.numItemInv += 1
@@ -1407,7 +1422,7 @@ def checkEquip(slot):
         player.body = shirt_jeans
         wear.play()
     # put on l_hand
-    elif isinstance(slot,L_hand) and slot is not player.lefthand:
+    elif isinstance(slot,L_hand) and slot is not player.lefthand and player.lefthand != no_left:
         saved_item = None
         if player.lefthand != fap and slot != player.lefthand: # if has weapon equipped already
             saved_item = player.lefthand
@@ -1423,7 +1438,7 @@ def checkEquip(slot):
         wear.play()
         time.sleep(0.3)
     #remove l_hand
-    elif slot == player.lefthand and player.lefthand != fap and slot not in player.inv and player.numItemInv < player.numMaxItem:
+    elif slot == player.lefthand and player.lefthand != fap and player.lefthand != no_left and slot not in player.inv and player.numItemInv < player.numMaxItem:
         player.lefthand.noBonus()
         player.inv[player.numItemInv] = player.lefthand
         player.numItemInv += 1
@@ -2173,9 +2188,9 @@ def game_loop():
     setInv()
     setLearnedSkills()
     addItem(katana)
-    addItem(def_sword)
+    addItem(shld_star)
     addItem(bronze_body)
-    addItem(god)
+    addItem(staff)
     # images in game
     bg = pygame.image.load('hometown.png')
     # player coordinates

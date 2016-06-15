@@ -1258,7 +1258,22 @@ def instructions():
         screen.blit(small_arrow_left,centerIMG(30,30,390,385))
         screen.blit(small_arrow_right,centerIMG(30,30,465,385))
         if timer >= 180:
-            button('OKAY',30,screenW/2-50,550,100,100,green,lightGreen,leaveSome,None)
+            button('OKAY',30,screenW/2-50,550,100,100,green,lightGreen,instructions_2,None)
+        pygame.display.update()
+
+def instructions_2():
+    global inSome
+    inSome = True
+    timer = 0
+    while inSome:
+        timer += 1
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quitGame()
+        screen.fill(white)
+        screen.blit(pygame.image.load('instruct_1.png',),(0,0))
+        if timer >= 80:
+            button('OKAY',30,screenW/2-35,525,100,100,green,lightGreen,leaveSome,None)
         pygame.display.update()
 
 def stats():

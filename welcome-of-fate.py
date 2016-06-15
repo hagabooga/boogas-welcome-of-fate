@@ -821,10 +821,21 @@ scimitar = Sword('Scimitar','scimitar.png','A curved and very sharp blade',29,9,
                   12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1000)
 # Axe
 # Wand
+wand = Wand('Wand','wand.png','A wooden wand',3,7,\
+            0, 5, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 225)
+
+mag_wand = Wand('Magic Wand','mag_wand.png','A magic wand',7,17,\
+            0, 14, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 450)
+
+star_wand = Wand('Star Wand','star_wand.png','A Star wand',9,27,\
+            0, 25, 0, 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 800)
+
+element_wand = Wand('Element Wand','element_wand.png','An Elemental wand',14,50,\
+            0, 42, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 0, 1500)
 # Staff
 staff = Staff('Staff','staff.png','A wooden staff used by novice mages',5,9,\
                0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 250)
-magic_staff = Staff('Magic Staff','magic_staff.png','A staff powered up by magic',9,21,\
+mag_staff = Staff('Magic Staff','mag_staff.png','A staff powered up by magic',9,21,\
                      0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 500)
 star_staff = Staff('Star Staff','star_staff.png','A staff blessed by the power of the stars',10,32,\
                     0, 31, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 900)
@@ -859,7 +870,7 @@ fruit = Axe('The Fruits of Booga','fruit.png','Fruits saved when Booga dropped t
                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6000)
 allin = Axe('All In','allin.png','HP set to 8',120,120,\
                50, 50, 50, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12000)
-shop_weapons_1 = [inner,battleaxe,katana,scimitar,shortsword,longsword,tipper,def_sword,staff,magic_staff,star_staff,element_staff,\
+shop_weapons_1 = [inner,battleaxe,katana,scimitar,shortsword,longsword,tipper,def_sword,staff,mag_staff,star_staff,element_staff,\
        long_dag,edge_dag,poison_dag,balance_dag,fire_sword,big_axe,fruit,allin]
 givebdesc(shop_weapons_1)
 ## pg2 Armors Body
@@ -943,10 +954,16 @@ shop_L_hand_1 = [shld_wood,shld_mana,shld_star,shld_element,\
 
 givebdesc(shop_L_hand_1[0:8])
 
-# FOR ALPHA USE
-shop_mage = []
+### FOR ALPHA USE
+shop_alpha_mage1 = [wand,staff,robe,app_hat,shld_wood,\
+                    mag_wand,mag_staff,mag_robe,mage_hat,shld_mana,\
+                    star_wand,star_staff,star_robe,star_hat,shld_star,\
+                    element_wand,element_staff,element_robe,element_hat,shld_element]
+givebdesc(shop_alpha_mage1[0:20:5])
 
-shop_pg = [shop_weapons_1,shop_body_1,shop_L_hand_1] # list in list
+shop_pg = [shop_alpha_mage1]
+
+#shop_pg = [shop_weapons_1,shop_body_1,shop_L_hand_1] # list in list
 
 
 # Starting Weapons

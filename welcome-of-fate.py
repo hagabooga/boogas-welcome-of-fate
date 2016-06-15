@@ -1561,9 +1561,9 @@ def slotButton(slot,x,y,w,h):
             itemValue(slot)
             if pygame.mouse.get_pressed()[0]:
                 if player.numItemInv == player.numMaxItem:
-                    textbox('Full inventory!',30,red,775,400)
+                    textbox('Full inventory!',30,red,775,425)
                 elif slot in player.inv or slot in [player.head,player.weapon,player.body,player.lefthand]:
-                    textbox('You already have one!',30,red,775,400)
+                    textbox('You already have one!',30,red,775,425)
                 else:
                     buyItem(slot)
 
@@ -1636,7 +1636,7 @@ def addItem(item):
 def buyItem(slot):
     global inSome
     if player.cash < slot.cost:
-        textbox('Not enough gold!',30,blue,775,400)
+        textbox('Not enough gold!',30,blue,775,425)
     else:
         want = True
         while want:
@@ -1949,9 +1949,9 @@ def fight():
             if event.type == pygame.QUIT:
                 quitGame()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_i:
+                if event.key == pygame.K_1:
                     inventory()
-                elif event.key == pygame.K_o:
+                elif event.key == pygame.K_2:
                     statsPage()
                 elif event.key == pygame.K_a:
                     if text_detail_pg_num - 1 >= 0:

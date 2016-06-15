@@ -1370,6 +1370,9 @@ def checkEquip(slot):
                 player.inv[player.numItemInv] = player.lefthand
                 player.numItemInv += 1
             player.lefthand = no_left
+        else:
+            if player.lefthand == no_left:
+                player.lefthand = fap
         if slot.weapon_requirement():
             saved_item = None
             if player.weapon != fists and slot != player.weapon: # if has weapon equipped already

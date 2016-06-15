@@ -119,7 +119,7 @@ class Player(object):
         # General
         self.LV = 1
         self.AP = 5
-        self.SP = 5
+        self.SP = 1
         self.exp = 0
         self.max_exp = 12
         self.cash = 0

@@ -50,8 +50,12 @@ pg_flip = pygame.mixer.Sound('page_flip.wav')
 crit = pygame.mixer.Sound('crit.wav')
 select = pygame.mixer.Sound('select.wav')
 
+# Pictures
 small_arrow_left = pygame.image.load('small_arrow_left.png')
 small_arrow_right = pygame.image.load('small_arrow_right.png')
+st_burn = pygame.image.load('st_burn.png')
+st_para = pygame.image.load('st_para.png')
+st_bleed = pygame.image.load('st_bleed.png')
 
 # Global Variables
 inSome = False
@@ -249,7 +253,7 @@ class Action:
             damage = used_skill.damage - victim.armor
         else:
             damage = used_skill.damage - victim.mag_armor
-        if meditate in player.fight_actives and isinstance(used_skill,Magical): # MEDITATE SKILL
+        if meditate in player.fight_actives and isinstance(used_skill,Magical): # MEDITATE SKILL (all damage multipliers should go here)
                 damage *= meditate.scale/100 # a percentage
                 player.fight_actives.remove(meditate)
         hit_chance = user.hit - victim.dodge
@@ -378,10 +382,13 @@ class Skill(Action):
                 return player.LV >=5
             else:
                 return True
-            
-                
         else:
             return True
+    def status_effect(self):
+        if hasattr(self,'burn_chance'):
+            if burn_chance >= random.choice(range(101)):
+                return 'burn'
+    
 
 class Physical(Skill):
     def __init__(self,name,img,sound,desc,effdesc,requiredesc,maxRank):
@@ -505,6 +512,7 @@ def skillUpdate():
         basic_attack.mana = 0
         ember.damage = round(100 + (player.mag_damage/1.8)*(2.0 * (1 + ember.rank)))
         ember.mana = round(60 + ember.damage/(17-ember.rank) + ember.rank * 35)
+        ember.burn_chance = 100#round(15 + 5*ember.rank + player.mag_damage/(35 + player.mag_damage/4))
         shower.damage = round(80 + (player.mag_damage/2.0)*(1.8 * (1 + shower.rank)))
         shower.mana = round(45 + shower.damage/(20-shower.rank) + shower.rank * 25)
         breeze.damage = round(70 + (player.mag_damage/2.1)*(1.5 * (1 + breeze.rank)))
@@ -1868,7 +1876,7 @@ def fakeFight():
     textbox('%s'%enemy.name,40,black,800,150)
     screen.blit(player.img,(425,355))
     screen.blit(enemy.img, centerIMG(255,255,800,350))
-    showActives()
+    showActivesAndStatus()
     textbox('Turn: %i'%(fight_turn),25,black,330,25)
     status_bar()
     pygame.display.update()
@@ -2039,7 +2047,7 @@ def fight():
         if text_detail_pg_num + 1 < 2:
             screen.blit(small_arrow_right,centerIMG(30,30,600,150))
         fightDetailText(text_detail_pg_num)
-        showActives()
+        showActivesAndStatus()
         status_bar()
         ###
         pygame.display.update()
@@ -2049,10 +2057,14 @@ def resetCooldown():
     for skill in [mana_gaurd,restore,barrier,meditate]:
         skill.delCooldownEnd()
 
-def showActives():
+def showActivesAndStatus():
     x = 0
     for skill in player.fight_actives:
         screen.blit(skill.img,centerIMG(80,80,50+x,525))
+        x += 100
+    x = 0
+    for skill in player.fight_status:
+        screen.blit(skill.img,centerIMG(80,80,50+x,650))
         x += 100
 
 

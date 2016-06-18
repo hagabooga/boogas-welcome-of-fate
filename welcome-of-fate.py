@@ -129,6 +129,7 @@ class Player(object):
         self.cash = 0
         self.learned_skills = []
         self.fight_actives = []
+        self.fight_status = []
         # Game
         self.img = pygame.image.load('play_nor.png')
         self.X = 500
@@ -384,10 +385,26 @@ class Skill(Action):
                 return True
         else:
             return True
-    def status_effect(self):
+    def status_effect(self,victim):
         if hasattr(self,'burn_chance'):
-            if burn_chance >= random.choice(range(101)):
-                return 'burn'
+            if self.burn_chance >= random.choice(range(101)):
+                if st_burn not in victim.fight_status:
+                    victim.fight_status.append(st_burn)
+                return st_burn
+        elif hasattr(self,'para_chance'):
+            if self.para_chance >= random.choice(range(101)):
+                if st_burn not in victim.fight_status:
+                    victim.fight_status.append(st_para)
+                return st_para
+        elif hasattr(self,'bleed_chance'):
+            if self.bleed_chance >= random.choice(range(101)):
+                if st_burn not in victim.fight_status:
+                    victim.fight_status.append(st_bleed)
+                return st_bleed
+        else:
+            return None
+        
+        
     
 
 class Physical(Skill):
@@ -512,7 +529,7 @@ def skillUpdate():
         basic_attack.mana = 0
         ember.damage = round(100 + (player.mag_damage/1.8)*(2.0 * (1 + ember.rank)))
         ember.mana = round(60 + ember.damage/(17-ember.rank) + ember.rank * 35)
-        ember.burn_chance = 100#round(15 + 5*ember.rank + player.mag_damage/(35 + player.mag_damage/4))
+        ember.burn_chance = round(15 + 5*ember.rank + player.mag_damage/(35 + player.mag_damage/4))
         shower.damage = round(80 + (player.mag_damage/2.0)*(1.8 * (1 + shower.rank)))
         shower.mana = round(45 + shower.damage/(20-shower.rank) + shower.rank * 25)
         breeze.damage = round(70 + (player.mag_damage/2.1)*(1.5 * (1 + breeze.rank)))
@@ -1112,6 +1129,8 @@ class Enemy:
     def __init__(self, name, img, HP, MP, damage, mag_damage, armor, mag_armor, hit, dodge, crit, loot, exp):
         self.name = name
         self.img = pygame.image.load(img)
+        self.maxHP = HP
+        self.maxMP = MP
         self.HP = HP
         self.MP = MP
         self.damage = damage
@@ -1127,6 +1146,9 @@ class Enemy:
         ## SKILLS
         self.basic = Physical('Basic Attack',None,None,'','','',0)
         self.fireball = Magical('Fireball',None,'fire.wav','','','',0)
+        ## GENERAL
+        self.fight_actives = []
+        self.fight_status = []
     def randSkill(self): # All enemy attacks are in here
         skill = random.choice([self.basic])#,self.fireball])
         return skill
@@ -1207,8 +1229,8 @@ def gameover():
 def status_bar():
     if player.shield_hp > 0 and inFight:
         textbox('Shield: %i'%player.shield_hp,50,orange,500,650)
-    textbox(player.name,30,black,130,725)
-    textbox(('LV: %i     HP  %i / %i   MP  %i / %i     $%i' %(player.LV,player.HP,player.maxHP,player.MP,player.maxMP,player.cash)),40,black,620,725)
+    textbox(player.name,30,black,75,725)
+    textbox(('LV %i     HP  %i / %i   MP  %i / %i' %(player.LV,player.HP,player.maxHP,player.MP,player.maxMP)),40,black,620,725)
 
 def intro():
     global inSome
@@ -1281,7 +1303,7 @@ def instructions_2():
         screen.fill(white)
         screen.blit(pygame.image.load('instruct_1.png',),(0,0))
         if timer >= 80:
-            button('OKAY',30,screenW/2-35,525,100,100,green,lightGreen,leaveSome,None)
+            button('OKAY',30,screenW/2-26,525,100,100,green,lightGreen,leaveSome,None)
         pygame.display.update()
 
 def stats():
@@ -1868,18 +1890,23 @@ def doNone():
 
 def fakeFight():
     screen.fill(white)
-    textbox('HP: %i'%(enemy.HP),50,lightRed,800,540)
-    textbox('MP: %i'%(enemy.MP),50,lightBlue,800,615)
+    textbox('%s'%enemy.name,40,black,800,175)
+    textbox('HP: %i'%(enemy.HP),45,lightRed,800,520)
+    textbox('MP: %i'%(enemy.MP),45,lightBlue,800,580)
     button('Attack',35,25,350,100,100,green,lightGreen,doNone,None)
     button('Skills',35,150,350,100,100,red,lightRed,doNone,None)
     button('Run',30,275,375,75,75,red,lightRed,doNone,None)
-    textbox('%s'%enemy.name,40,black,800,150)
     screen.blit(player.img,(425,355))
     screen.blit(enemy.img, centerIMG(255,255,800,350))
+    textbox('Turn: %i'%(fight_turn),25,black,330,340)
     showActivesAndStatus()
-    textbox('Turn: %i'%(fight_turn),25,black,330,25)
     status_bar()
-    pygame.display.update()
+
+def status_calc(status,victim):
+    if status == st_burn:
+        burn_damage = round(victim.maxHP/10 - random.choice(range(round(victim.maxHP/100))) + random.choice(range(10))) 
+        victim.HP -= burn_damage
+        return burn_damage
 
 def dmg_calc(used_skill):
     leaveLearnSkill()
@@ -1907,6 +1934,7 @@ def dmg_calc(used_skill):
                     fight_shown_text.append(['You critically strike!',blue])
                     crit.play()
                 fight_shown_text.append(['You deal %i physical damage'%damage,red])
+                
             else:
                 fight_shown_text.append(['You Missed!',blue])
         elif isinstance(used_skill,Magical):
@@ -1916,12 +1944,21 @@ def dmg_calc(used_skill):
                     fight_shown_text.append(['You critically strike!',blue])
                     crit.play()
                 fight_shown_text.append(['You deal %i magical damage'%damage,red])
+                ##########################
+                status_eff  = used_skill.status_effect(enemy)
+                if status_eff == st_burn:
+                    fight_shown_text.append(['You burned the enemy!',orange])
             else:
                 fight_shown_text.append(['You Missed!',blue])
         elif isinstance(used_skill,Active):
             Action.skillActive(player,enemy,used_skill)
     elif isinstance(used_skill,Potion):
         Potion.activate_eff(used_skill)
+    # status effects (should be last effect that happens)
+    for status in enemy.fight_status:
+        if status == st_burn:
+            burn_damage = status_calc(st_burn,enemy)
+            fight_shown_text.append(['Enemy takes %i burn damage'%burn_damage,lightRed])
     if enemy.HP <= 0:
         fight_shown_text.append(['You have defeated the enemy!',brown])
     # refresh
@@ -2033,15 +2070,15 @@ def fight():
             gameover()
         # refresh
         screen.fill(white)
-        textbox('HP: %i'%(enemy.HP),50,lightRed,800,540)
-        textbox('MP: %i'%(enemy.MP),50,lightBlue,800,615)
+        textbox('%s'%enemy.name,40,black,800,175)
+        textbox('HP: %i'%(enemy.HP),45,lightRed,800,520)
+        textbox('MP: %i'%(enemy.MP),45,lightBlue,800,580)
         button('Attack',35,25,350,100,100,green,lightGreen,dmg_calc,basic_attack)
         button('Skills',35,150,350,100,100,red,lightRed,learnedSkillsPage,None)
         button('Run',30,275,375,75,75,red,lightRed,dmg_calc,'run')
-        textbox('%s'%enemy.name,40,black,800,150)
         screen.blit(player.img,(425,355))
         screen.blit(enemy.img, centerIMG(255,255,800,350))
-        textbox('Turn: %i'%(fight_turn),25,black,330,25)
+        textbox('Turn: %i'%(fight_turn),25,black,330,340)
         if text_detail_pg_num - 1 >= 0:
             screen.blit(small_arrow_left,centerIMG(30,30,60,150))
         if text_detail_pg_num + 1 < 2:
@@ -2063,9 +2100,17 @@ def showActivesAndStatus():
         screen.blit(skill.img,centerIMG(80,80,50+x,525))
         x += 100
     x = 0
-    for skill in player.fight_status:
-        screen.blit(skill.img,centerIMG(80,80,50+x,650))
+    for stats in player.fight_status:
+        screen.blit(status,centerIMG(80,80,50+x,650))
         x += 100
+    x = 0
+    for skill in enemy.fight_actives:
+        screen.blit(skill.img,centerIMG(80,80,700+x,525))
+        x += 100
+    x = 0
+    for stats in enemy.fight_status:
+        screen.blit(stats,centerIMG(80,80,700+x,650))
+        x += 100   
 
 
 def fightAgain():
@@ -2175,6 +2220,7 @@ def inventory():
         matrixSlot(3,1,[player.weapon,player.body,player.lefthand],100,170,125,0)
         slotButton(player.head,225,45,100,100)
         ##################
+        textbox('Cash: $%i'%player.cash,30,yellow,screenW/2-40,100)
         textbox('Hover over an item and right click to sell',20,black,800,680)
         ##################
         status_bar()

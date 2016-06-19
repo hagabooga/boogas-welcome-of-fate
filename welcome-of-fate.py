@@ -182,7 +182,7 @@ class Player(object):
         self.AP = 5
         self.SP += 1
         self.exp = 0
-        self.max_exp = 12 * self.LV + 10
+        self.max_exp = (12+self.LV) * self.LV + 8*self.LV
         stats()
         self.healFullHP()
         self.healFullMP()
@@ -582,15 +582,15 @@ def skillUpdate():
         shock.para_chance = round(20 + 3*shock.rank + player.mag_damage/(25 + player.mag_damage/4))
         shock.crit_chance = round(16 + 3*shock.rank)
         thunderbolt.damage = round(shock.damage + (player.mag_damage/1.6)*(2.2 * (1 + thunderbolt.rank)))
-        thunderbolt.mana = round(shock.mana + thunderbolt.damage/(12-thunderbolt.rank) + thunderbolt.rank * 90)
+        thunderbolt.mana = round(shock.mana + thunderbolt.damage/(15-thunderbolt.rank) + thunderbolt.rank * 60)
         thunderbolt.para_chance = round(shock.para_chance + 3*thunderbolt.rank + player.mag_damage/(25 + player.mag_damage/3.8))
         thunderbolt.crit_chance = round(25 + 3*thunderbolt.rank)
         lightning.damage = round(thunderbolt.damage + (player.mag_damage/1.5)*(2.2 * (1 + lightning.rank)))
-        lightning.mana = round(thunderbolt.mana + lightning.damage/(12-lightning.rank) + lightning.rank * 200)
+        lightning.mana = round(thunderbolt.mana + lightning.damage/(15-lightning.rank) + lightning.rank * 80)
         lightning.para_chance = round(thunderbolt.para_chance + 3*lightning.rank + player.mag_damage/(25 + player.mag_damage/3.6))
         lightning.crit_chance = round(35 + 2*lightning.rank)
         thunderstorm.damage = round(lightning.damage + (player.mag_damage/1.4)*(2.2 * (1 + thunderstorm.rank)))
-        thunderstorm.mana = round(lightning.mana + thunderstorm.damage/(12-thunderstorm.rank) + thunderstorm.rank * 285)
+        thunderstorm.mana = round(lightning.mana + thunderstorm.damage/(15-thunderstorm.rank) + thunderstorm.rank * 120)
         thunderstorm.para_chance = round(lightning.para_chance + 4*thunderstorm.rank + player.mag_damage/(25 + player.mag_damage/3.4))
         thunderstorm.crit_chance = round(42 + 2*thunderstorm.rank)
         ### Actives (has unique detail)
@@ -611,8 +611,8 @@ def skillUpdate():
         meditate.mana = 140 - 15*meditate.rank
         meditate.detail = 'Multiplier: %i%%, CD: %i, Mana Cost: %i'%(meditate.scale,meditate.cooldown,meditate.mana)
         ### Passives (has unique detail)
-        max_mp_inc.bonus = 400 # each level gains amount
-        max_mp_inc.detail = 'Max MP: +%i, Next rank: +%i'%(max_mp_inc.bonus*max_mp_inc.rank,max_mp_inc.bonus*(max_mp_inc.rank+1))
+        max_mp_inc.bonus = round((550 + 230*max_mp_inc.rank)*(1 + max_mp_inc.rank/85)) # each level gains amount
+        max_mp_inc.detail = 'Max MP: +%i'%(max_mp_inc.bonus)
         magic_mast.bonus = 4
         magic_mast.detail = 'Luck/Hit/Crit: +%i, Next rank: +%i'%(magic_mast.bonus*magic_mast.rank,magic_mast.bonus*(magic_mast.rank+1))
         mana_armor.bonus = round(player.maxMP/40)
@@ -621,7 +621,7 @@ def skillUpdate():
         if not player.rank_up_as_one:
             as_one.detail = 'When ranked up, Max MP:  +%i'%as_one.bonus
         else:
-            as_one.detail = 'Now gives, Max MP: +%i'%as_one.given_bonus
+            as_one.detail = 'You have gained, Max MP: +%i'%as_one.given_bonus
 
 ### Rouge Skills #1
 ##bleed = Skill()
@@ -1262,8 +1262,8 @@ def gameover():
 def status_bar():
     if player.shield_hp > 0 and inFight:
         textbox('Shield: %i'%player.shield_hp,50,orange,500,650)
-    textbox(player.name,30,black,75,725)
-    textbox(('LV %i     HP  %i / %i   MP  %i / %i' %(player.LV,player.HP,player.maxHP,player.MP,player.maxMP)),40,black,620,725)
+    textbox(player.name,30,black,80,725)
+    textbox(('LV %i     HP  %i / %i   MP  %i / %i' %(player.LV,player.HP,player.maxHP,player.MP,player.maxMP)),40,black,600,725)
 
 def intro():
     global inSome
@@ -1615,7 +1615,7 @@ def slotButton(slot,x,y,w,h):
                                         slot.rank += 1
                                         player.SP -= 1
                                         rank_up.play()
-                                        time.sleep(0.3)
+                                        time.sleep(0.16)
                                         skillUpdate()
                                         if isinstance(slot,Passive):
                                             slot.giveBonus()
@@ -1625,6 +1625,19 @@ def slotButton(slot,x,y,w,h):
                                         textbox('Skill at max rank!',35,blue,800,235)
                                 else:
                                     textbox('Requirements not met!',35,blue,800,235)
+                            elif slot in player.learned_skills:
+                                if not slot.rank == slot.maxRank:    
+                                    slot.rank += 1
+                                    player.SP -= 1
+                                    rank_up.play()
+                                    time.sleep(0.16)
+                                    skillUpdate()
+                                    if isinstance(slot,Passive):
+                                        slot.giveBonus()
+                                        player.statUpdate()
+                                        skillUpdate()
+                                else:
+                                    textbox('Skill at max rank!',35,blue,800,235)
                             else:
                                 textbox('Maximum number of skills learned!',35,blue,800,235)
                         else:
@@ -1860,7 +1873,7 @@ def learnedSkillsPage():
             textbox('Learn skills by ranking them up using SP!',50,black,screenW/2,screenH/2)
         if not inFight:
             textbox('SP: %i'%player.SP,50,black,905,630)
-            textbox('Hover over a skill and right click to forget the skill',20,black,300,685)
+            textbox('Hover over a skill and right click to remove the skill',20,black,300,685)
             button('Leave',30,660,575,100,100,red,lightRed,leaveLearnSkill,None)
         else:
             textbox('Press 3 to leave',20,black,300,680)
@@ -2067,19 +2080,19 @@ def fight():
     resetCooldown() # reset cooldown
     #Enemy(self, name, img, HP,MP, damage,mag_damage, armor,mag_armor, hit,dodge,crit, loot,exp):
     #Low level mobs
-    alec = Enemy('Alec','alec.png',300,100, 25,50, 10,40, 95,5,5, 18,10)
-    sungmin = Enemy('Sungmin','sungmin.png',400,75, 35,25, 25,25, 95,5,4, 20,15)
-    kaelan = Enemy('Kaelan','kaelan.png',450,40, 45,25, 40,10, 95,5,4, 25,17)
+    alec = Enemy('Alec','alec.png',300,100, 70,50, 25,40, 95,5,5, 25,10)
+    sungmin = Enemy('Sungmin','sungmin.png',400,75, 80,55, 25,25, 95,5,4, 30,15)
+    kaelan = Enemy('Kaelan','kaelan.png',450,40, 85,25, 40,10, 95,5,4, 35,17)
     #Medium level mobs
-    alicky = Enemy('Alicky','alec.png',1500,500, 60,100, 80,145, 90,5,5, 125,100)
-    sunger = Enemy('Sunger Munger','sungmin.png',1635,350, 100,125, 125,125, 92,5,5, 125,125)
-    brownitron = Enemy('Brownitron','kaelan.png',1825,175, 125,100, 100,100, 87,5,4, 125,150)
-    ryan = Enemy('Ryan','ryan.png',600,30, 100,5, 0,0, 120,42,38, 175,90)
-    tina = Enemy('Tina','tina.png',1300,700, 50,100, 8,80, 85,10,6, 115,100)
+    alicky = Enemy('Alicky','alec.png',1500,500, 180,300, 200,200, 90,5,5, 125,100)
+    sunger = Enemy('Sunger Munger','sungmin.png',1635,500, 200,250, 450,450, 92,5,5, 135,125)
+    brownitron = Enemy('Brownitron','kaelan.png',1825,800, 250,175, 300,300, 87,5,4, 150,150)
+    ryan = Enemy('Ryan','ryan.png',1369,30, 100,5, 0,0, 120,50,50, 175,125)
+    tina = Enemy('Tina','tina.png',3750,1000, 50,100, 300,600, 85,10,6, 200,100)
     #High level mobs
-    laluche = Enemy('La Lucha Libre','ryan.png',700,100, 300,10, 0,0, 130,50,42, 400,150)
-    dyonghae = Enemy('Dyonghae','tina.png',1800,1500, 60,200, 100,140, 95,5,5, 200,300)
-    greasy_booga = Enemy('Greasy Booga','greasy_booga.png',3000,750, 200,60, 80,100, 85,10,12, 500,300)
+    laluche = Enemy('La Lucha Libre','ryan.png',5000,100, 300,10, 0,0, 150,75,75, 400,150)
+    dyonghae = Enemy('Dyonghae','tina.png',7500,1500, 400,600, 700,900, 95,5,5, 200,300)
+    greasy_booga = Enemy('Greasy Booga','greasy_booga.png',10000,1200, 550,375, 800,800, 85,20,20, 500,300)
     # Choose random enemy
     if player.LV < 5:
         enemy = random.choice([alec,sungmin,kaelan])

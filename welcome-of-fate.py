@@ -1565,6 +1565,7 @@ def trimExtraHPMP():
         player.MP = player.maxMP
 
 def slotButton(slot,x,y,w,h):
+    global inInv
     mouse = pygame.mouse.get_pos()
     click = pygame.mouse.get_pressed()
 ##    player.skillUpdate()
@@ -1667,7 +1668,6 @@ def slotButton(slot,x,y,w,h):
             else: # in fight potion/equip mechanic
                 if pygame.mouse.get_pressed()[0] and slot in player.inv and slot is not player.weapon and slot is not player.body and\
                                                      slot is not player.lefthand and slot is not player.head and slot != None:
-                    global inInv
                     checkEquip(slot)
                     inInv = False
                     dmg_calc(slot)

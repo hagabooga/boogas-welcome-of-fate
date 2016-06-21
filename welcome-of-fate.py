@@ -49,6 +49,7 @@ rank_up = pygame.mixer.Sound('rank_up.wav')
 pg_flip = pygame.mixer.Sound('page_flip.wav')
 crit = pygame.mixer.Sound('crit.wav')
 select = pygame.mixer.Sound('select.wav')
+#congrats = pygame.mixer.Sound('
 
 # Pictures
 small_arrow_left = pygame.image.load('small_arrow_left.png')
@@ -56,6 +57,7 @@ small_arrow_right = pygame.image.load('small_arrow_right.png')
 st_burn = pygame.image.load('st_burn.png')
 st_para = pygame.image.load('st_para.png')
 st_bleed = pygame.image.load('st_bleed.png')
+st_curse = pygame.image.load('st_curse.png')
 
 # Global Variables
 inSome = False
@@ -254,9 +256,9 @@ class Action:
             damage = used_skill.damage - victim.armor
         else: # magical attack
             damage = used_skill.damage - victim.mag_armor
-        if meditate in player.fight_actives and isinstance(used_skill,Magical): # MEDITATE SKILL (all damage multipliers should go here)
+        if meditate in user.fight_actives and isinstance(used_skill,Magical): # MEDITATE SKILL (all damage multipliers should go here)
                 damage *= meditate.scale/100 # a percentage
-                player.fight_actives.remove(meditate)
+                user.fight_actives.remove(meditate)
         #####
         crit_chance = user.crit
         hit_chance = user.hit - victim.dodge
@@ -268,11 +270,14 @@ class Action:
                 crit_chance += used_skill.crit_chance
             print(crit_chance)
             if crit_chance >= random.choice(range(100)): # Check if crit
-                damage = round(damage*2.5) # crit multiplier
+                damage = round(damage*2.25) # crit multiplier
                 user.didCrit = True
             else:
                 user.didCrit = False
-            damage += random.choice(range(15)) # bonus damage
+            if user == player:
+                damage += random.choice(range(0+user.luck,15+user.luck)) # bonus damage
+            else:
+                damage += random.choice(range(0,round(15+user.damage/90)))
             if damage < 0: # if damage less than 0, damage = 0 so no heal
                 damage = 0
             if victim.shield_hp > 0: # SHIELD DAMAGE GOES FIRST ALWAYS
@@ -359,7 +364,6 @@ class Skill(Action):
             elif self == whirlwind:
                 return player.LV >= 10 and gust.rank >= 3
             elif self == lightning:
-
                 return player.LV >= 10 and thunderbolt.rank >= 3
             elif self == inferno:
                 return player.LV >= 18 and blaze.rank >= 3
@@ -409,6 +413,11 @@ class Skill(Action):
                 if st_burn not in victim.fight_status:
                     victim.fight_status.append(st_bleed)
                 return st_bleed
+        elif hasattr(self,'curse_chance'):
+            if self.curse_chance >= random.choice(range(101)):
+                if st_curse not in victim.fight_status:
+                    victim.fight_status.append(st_curse)
+                return st_curse
         else:
             return None
     
@@ -534,36 +543,36 @@ def skillUpdate():
         basic_attack.mana = 0
         ### Damage Skills
         # Fire
-        ember.damage = round(100 + (player.mag_damage/1.8)*(2.0 * (1 + ember.rank)))
-        ember.mana = round(60 + ember.damage/(17-ember.rank) + ember.rank * 35)
+        ember.damage = round(75 + (player.mag_damage/1.8)*(1.8 * (1 + ember.rank)))
+        ember.mana = round(50 + ember.damage/(17-ember.rank) + ember.rank * 35)
         ember.burn_chance = round(15 + 3*ember.rank + player.mag_damage/(25 + player.mag_damage/4))
-        fireball.damage = round(ember.damage + (player.mag_damage/1.7)*(1.8 * (1 + fireball.rank)))
-        fireball.mana = round(ember.mana + fireball.damage/(15-fireball.rank) + fireball.rank * 75)
+        fireball.damage = round(ember.damage + (player.mag_damage/1.75)*(1.8 * (1 + fireball.rank)))
+        fireball.mana = round(ember.mana + fireball.damage/(15-fireball.rank) + fireball.rank * 60)
         fireball.burn_chance = round(ember.burn_chance + 3*fireball.rank + player.mag_damage/(25 + player.mag_damage/4))
-        blaze.damage = round(fireball.damage + (player.mag_damage/1.6)*(1.8 * (1 + blaze.rank)))
-        blaze.mana = round(fireball.mana + blaze.damage/(15-blaze.rank) + blaze.rank * 150)
+        blaze.damage = round(fireball.damage + (player.mag_damage/1.7)*(1.8 * (1 + blaze.rank)))
+        blaze.mana = round(fireball.mana + blaze.damage/(15-blaze.rank) + blaze.rank * 125)
         blaze.burn_chance = round(fireball.burn_chance + 4*blaze.rank + player.mag_damage/(25 + player.mag_damage/4))
-        inferno.damage = round(blaze.damage + (player.mag_damage/1.5)*(1.8 * (1 + inferno.rank)))
-        inferno.mana = round(blaze.mana + inferno.damage/(15-inferno.rank) + inferno.rank * 250)
+        inferno.damage = round(blaze.damage + (player.mag_damage/1.65)*(1.8 * (1 + inferno.rank)))
+        inferno.mana = round(blaze.mana + inferno.damage/(15-inferno.rank) + inferno.rank * 210)
         inferno.burn_chance = round(blaze.burn_chance + 5*inferno.rank + player.mag_damage/(25 + player.mag_damage/4))
         # Water
-        shower.damage = round(80 + (player.mag_damage/2.0)*(1.8 * (1 + shower.rank)))
+        shower.damage = round(88 + (player.mag_damage/1.7)*(1.85 * (1 + shower.rank)))
         shower.mana = round(45 + shower.damage/(20-shower.rank) + shower.rank * 25)
         shower.hit_chance = round(20 + 3.5*shower.rank)
-        river.damage = round(shower.damage + (player.mag_damage/1.9)*(1.8 * (1 + river.rank)))
+        river.damage = round(shower.damage + (player.mag_damage/1.65)*(1.85 * (1 + river.rank)))
         river.mana = round(shower.mana + river.damage/(20-river.rank) + river.rank * 60)
         river.hit_chance = round(shower.hit_chance + 3.5*river.rank)
-        waterfall.damage = round(river.damage + (player.mag_damage/1.8)*(1.8 * (1 + waterfall.rank)))
+        waterfall.damage = round(river.damage + (player.mag_damage/1.6)*(1.85 * (1 + waterfall.rank)))
         waterfall.mana = round(river.mana + waterfall.damage/(20-waterfall.rank) + waterfall.rank * 100)
         waterfall.hit_chance = round(river.hit_chance + 3.5*waterfall.rank)
-        tsunami.damage = round(waterfall.damage + (player.mag_damage/1.7)*(1.8 * (1 + tsunami.rank)))
+        tsunami.damage = round(waterfall.damage + (player.mag_damage/1.5)*(1.85 * (1 + tsunami.rank)))
         tsunami.mana = round(waterfall.mana + tsunami.damage/(20-tsunami.rank) + tsunami.rank * 225)
         tsunami.hit_chance = round(waterfall.hit_chance + 3.5*tsunami.rank)
         # Wind
         breeze.damage = round(70 + (player.mag_damage/2.1)*(1.6 * (1 + breeze.rank)))
         breeze.mana = round(30 + breeze.damage/(23-breeze.rank) + breeze.rank * 20)
         breeze.crit_chance = round(26 + 3*breeze.rank)
-        breeze.hit_chance = round(-36 + 2*breeze.rank)
+        breeze.hit_chance = round(-20 + 2*breeze.rank)
         gust.damage = round(breeze.damage + (player.mag_damage/2.0)*(1.65 * (1 + gust.rank)))
         gust.mana = round(breeze.mana + gust.damage/(23-gust.rank) + gust.rank * 40)
         gust.crit_chance = round(breeze.crit_chance + 3*gust.rank)
@@ -577,41 +586,41 @@ def skillUpdate():
         tornado.crit_chance = round(whirlwind.crit_chance + 3*tornado.rank)
         tornado.hit_chance = round(whirlwind.hit_chance + 1*tornado.rank)
         # Electric
-        shock.damage = round(160 + (player.mag_damage/1.7)*(2.2 * (1 + shock.rank)))
-        shock.mana = round(80 + shock.damage/(15-shock.rank) + shock.rank * 55)
+        shock.damage = round(100 + (player.mag_damage/1.7)*(1.9 * (1 + shock.rank)))
+        shock.mana = round(80 + shock.damage/(14-shock.rank) + shock.rank * 55)
         shock.para_chance = round(20 + 3*shock.rank + player.mag_damage/(25 + player.mag_damage/4))
         shock.crit_chance = round(16 + 3*shock.rank)
-        thunderbolt.damage = round(shock.damage + (player.mag_damage/1.6)*(2.2 * (1 + thunderbolt.rank)))
-        thunderbolt.mana = round(shock.mana + thunderbolt.damage/(15-thunderbolt.rank) + thunderbolt.rank * 60)
+        thunderbolt.damage = round(shock.damage + (player.mag_damage/1.6)*(2 * (1 + thunderbolt.rank)))
+        thunderbolt.mana = round(shock.mana + thunderbolt.damage/(14-thunderbolt.rank) + thunderbolt.rank * 60)
         thunderbolt.para_chance = round(shock.para_chance + 3*thunderbolt.rank + player.mag_damage/(25 + player.mag_damage/3.8))
         thunderbolt.crit_chance = round(25 + 3*thunderbolt.rank)
-        lightning.damage = round(thunderbolt.damage + (player.mag_damage/1.5)*(2.2 * (1 + lightning.rank)))
-        lightning.mana = round(thunderbolt.mana + lightning.damage/(15-lightning.rank) + lightning.rank * 80)
+        lightning.damage = round(thunderbolt.damage + (player.mag_damage/1.5)*(2.1 * (1 + lightning.rank)))
+        lightning.mana = round(thunderbolt.mana + lightning.damage/(14-lightning.rank) + lightning.rank * 100)
         lightning.para_chance = round(thunderbolt.para_chance + 3*lightning.rank + player.mag_damage/(25 + player.mag_damage/3.6))
         lightning.crit_chance = round(35 + 2*lightning.rank)
         thunderstorm.damage = round(lightning.damage + (player.mag_damage/1.4)*(2.2 * (1 + thunderstorm.rank)))
-        thunderstorm.mana = round(lightning.mana + thunderstorm.damage/(15-thunderstorm.rank) + thunderstorm.rank * 120)
+        thunderstorm.mana = round(lightning.mana + thunderstorm.damage/(14-thunderstorm.rank) + thunderstorm.rank * 200)
         thunderstorm.para_chance = round(lightning.para_chance + 4*thunderstorm.rank + player.mag_damage/(25 + player.mag_damage/3.4))
         thunderstorm.crit_chance = round(42 + 2*thunderstorm.rank)
         ### Actives (has unique detail)
-        mana_gaurd.mana = round(75*mana_gaurd.rank + (player.maxMP*0.2)/(mana_gaurd.rank+1))
+        mana_gaurd.mana = round(75*mana_gaurd.rank + (player.MP*0.25)/(mana_gaurd.rank+1))
         mana_gaurd.cooldown = 5
         mana_gaurd.detail = 'CD: %i, Mana Cost: %i'%(mana_gaurd.cooldown,mana_gaurd.mana)
-        restore.hp = round(10+restore.rank*5 + player.maxHP/(10 - restore.rank/3) + player.mag_damage*0.5/player.maxHP)
-        restore.bonus_stat = round(restore.rank*6.5)
+        restore.hp = round(100+restore.rank*5 + player.maxHP/(10 - restore.rank/3) + player.mag_damage*0.5/player.maxHP)
+        restore.bonus_stat = round(player.mag_damage/99 + restore.rank*6.5)
         restore.cooldown = 3
-        restore.mana = round(50 + player.mag_damage*0.6*(1 - restore.rank/60))
+        restore.mana = round(50 + player.mag_damage*0.6*(1 - restore.rank/20))
         restore.detail = 'HP: +%i, Luck/Hit/Crit: +%i, CD: %i, Mana Cost: %i'%(restore.hp,restore.bonus_stat,restore.cooldown,restore.mana)
-        barrier.shield = round(75 + barrier.rank*6 + player.mag_damage*2*(1+barrier.rank/80))
+        barrier.shield = round(75 + barrier.rank*6 + player.mag_damage*(1.5+0.8*barrier.rank)*(1+barrier.rank/5))
         barrier.cooldown = 5
         barrier.mana = round(60 + barrier.rank*50 + player.mag_damage*0.25)
         barrier.detail = 'Shield Amount: %i, CD: %i, Mana Cost: %i'%(barrier.shield,barrier.cooldown,barrier.mana)
         meditate.scale = round(215 + (meditate.rank-1)*15)
         meditate.cooldown = 7 - meditate.rank
-        meditate.mana = 140 - 15*meditate.rank
+        meditate.mana = round(200 + player.maxMP/(15 + meditate.rank))
         meditate.detail = 'Multiplier: %i%%, CD: %i, Mana Cost: %i'%(meditate.scale,meditate.cooldown,meditate.mana)
         ### Passives (has unique detail)
-        max_mp_inc.bonus = round((550 + 230*max_mp_inc.rank)*(1 + max_mp_inc.rank/85)) # each level gains amount
+        max_mp_inc.bonus = round((320 + 245*max_mp_inc.rank)*(1 + max_mp_inc.rank/65)) # each level gains amount
         max_mp_inc.detail = 'Max MP: +%i'%(max_mp_inc.bonus)
         magic_mast.bonus = 4
         magic_mast.detail = 'Luck/Hit/Crit: +%i, Next rank: +%i'%(magic_mast.bonus*magic_mast.rank,magic_mast.bonus*(magic_mast.rank+1))
@@ -963,7 +972,7 @@ givebdesc(shop_body_1)
 shld_wood = L_hand('Wooden Shield','shld_wood.png','A shield made from wood',\
                     0, 0, 0, 0, 15, 75, 0, 0, 17, 37, 0, 0, 0, 400)
 shld_mana = L_hand('Mana Shield','shld_mana.png','Shield imbued with mana',\
-                   0, 0, 0, 0, 30, 150, 0, 0, 48, 750, 0, 0, 0, 900)
+                   0, 0, 0, 0, 30, 150, 0, 0, 48, 75, 0, 0, 0, 900)
 shld_star = L_hand('Star Shield','shld_star.png','Stars is your shield',\
                    0, 0, 0, 0, 45, 450, 0, 0, 72, 134, 0, 0, 0, 1900)
 shld_element = L_hand('Elemental Shield','shld_element.png','The elements gaurds you',\
@@ -1099,10 +1108,10 @@ class Mage(Player):
         super(Mage,self).__init__()
         self.job = 'Mage'
     def maxHPU(self):
-        stat = round(150 + self.stren*12.47 + self.LV*45)
+        stat = round(325 + self.stren*11.47 + self.LV*38)
         return stat
     def maxMPU(self):
-        stat = round(400 + self.intel*21.273 + self.LV*80)
+        stat = round(400 + self.intel*24.483 + self.LV*150)
         return stat
     def damageU(self):
         stat = round(25 + 3*self.LV + self.stren/4.2 + self.weapon.damage + self.weapon.damage*(1+self.stren/50))
@@ -1114,10 +1123,10 @@ class Mage(Player):
         stat = 10 + round(self.stren/2 + self.intel/5 + self.agi/3)
         return stat
     def mag_armorU(self):
-        stat = 15 + round(self.intel/2)
+        stat = 15 + round(self.intel/2 + self.agi/3)
         return stat
     def hitU(self):
-        stat = 100 + round(self.agi/6 + self.luck/5)
+        stat = 95 + round(self.agi/6 + self.luck/5)
         return stat
     def dodgeU(self):
         stat = 1 + round(self.agi/5 + self.luck/4)
@@ -1178,18 +1187,19 @@ class Enemy:
         self.shield_hp = 0
         ## SKILLS
         self.basic = Physical('Basic Attack',None,None,'','','',0)
-        self.fireball = Magical('Fireball',None,'fire.wav','','','',0)
+        self.curse = Magical('Curse',None,'curse.wav','','','',0)
         ## GENERAL
         self.fight_actives = []
         self.fight_status = []
     def randSkill(self): # All enemy attacks are in here
-        skill = random.choice([self.basic])#,self.fireball])
+        skill = random.choice([self.basic,self.curse])
         return skill
     def updateSkill(self):
         self.basic.damage = self.damage
         self.basic.mana = 0
-        self.fireball.damage = self.mag_damage
-        self.fireball.mana = round(self.mag_damage*1.43)
+        self.curse.damage = round(10 + self.mag_damage*1.25)
+        self.curse.mana = round(self.mag_damage*1.43)
+        self.curse.curse_chance = 33
 
 player = 'some Mage/Rouge/Warrior()'
 enemy = 'some Enemy()'
@@ -1260,7 +1270,7 @@ def gameover():
     time.sleep(0.5)
 
 def status_bar():
-    if player.shield_hp > 0 and inFight:
+    if player.shield_hp > 0 and inFight and not inInv and not inSome:
         textbox('Shield: %i'%player.shield_hp,50,orange,500,650)
     textbox(player.name,30,black,80,725)
     textbox(('LV %i     HP  %i / %i   MP  %i / %i' %(player.LV,player.HP,player.maxHP,player.MP,player.maxMP)),40,black,600,725)
@@ -1599,12 +1609,12 @@ def slotButton(slot,x,y,w,h):
     # When mouse hover slot box
     if x+w > mouse[0] > x and y+h > mouse[1] > y:
         if inSkill or inLearnSkill:
-            if not inFight:
+            if not inFight or enemy.HP <= 0:
                 if slot != None:
                     itemValue(slot)
                 if pygame.mouse.get_pressed()[0]:
                     # rank up skill
-                    if not inFight:
+                    if not inFight or enemy.HP <= 0:
                         if player.SP > 0 and slot != None:
                             if player.numLearnedSkills != player.numMaxSkills:
                                 if slot.skill_requirement():
@@ -1871,7 +1881,7 @@ def learnedSkillsPage():
         textbox('Learned Skills',60,black,280,50)
         if player.learned_skills[0] == None:
             textbox('Learn skills by ranking them up using SP!',50,black,screenW/2,screenH/2)
-        if not inFight:
+        if not inFight or enemy.HP >= 0:
             textbox('SP: %i'%player.SP,50,black,905,630)
             textbox('Hover over a skill and right click to remove the skill',20,black,300,685)
             button('Leave',30,660,575,100,100,red,lightRed,leaveLearnSkill,None)
@@ -1908,7 +1918,7 @@ def skillsPage():
         if player.job == 'Mage':
             matrixSlot(4,4,mage_skills_pg[pg_num],40,125,140,140)
         textbox('SP: %i'%player.SP,50,black,905,630)
-        textbox('Press 3 to leave',20,black,300,685)
+        textbox('Press 3 to leave',20,black,300,680)
         button('Learned Skills',30,660,575,100,100,red,lightRed,learnedSkillsPage,None)
         if pg_num - 1 >= 0:
             screen.blit(small_arrow_left,centerIMG(30,30,25,75))
@@ -1925,7 +1935,6 @@ def enemyAttack():
     if not enemy.isPara:
         if enemy.MP - used_skill.mana < 0:
             used_skill = basic_attack
-            weapon_atk_sound_play()
         damage = Action.skillAttack(enemy, player,used_skill)
         if damage != None:
             fight_shown_text.append(['Enemy uses %s'%used_skill.name,black])
@@ -1936,8 +1945,25 @@ def enemyAttack():
                 fight_shown_text.append(['Enemy deals %i physical damage'%(damage),red])
             else:
                 fight_shown_text.append(['Enemy deals %i magical damage'%(damage),red])
+            # Status
+            status_eff  = used_skill.status_effect(player)
+            if status_eff == st_burn:
+                fight_shown_text.append(['You are burned!',orange])
+            elif status_eff == st_para:
+                fight_shown_text.append(['You are paralyzed!',yellow])
+            elif status_eff == st_curse:
+                fight_shown_text.append(['You are cursed!',brown])
         else:
             fight_shown_text.append(['Enemy Misses!',orange])
+        for status in player.fight_status:
+            if status == st_burn:
+                burn_damage = status_calc(st_burn,player)
+                fight_shown_text.append(['You take %i burn damage'%burn_damage,lightRed])
+            elif status == st_para:
+                status_calc(st_para,player)
+            elif status == st_curse:
+                curse_damage = status_calc(st_curse,player)
+                fight_shown_text.append(['You take %i curse damage'%curse_damage,lightRed])
         addFightDetailText(fight_shown_text)
         pygame.display.update()
     else:
@@ -1964,7 +1990,7 @@ def fakeFight():
 
 def status_calc(status,victim):
     if status == st_burn:
-        burn_damage = round(victim.maxHP/10 - random.choice(range(round(victim.maxHP/100))) + random.choice(range(10))) 
+        burn_damage = round(victim.maxHP/10 - random.choice(range(round(10 + victim.maxHP/100))) + random.choice(range(10 + round(victim.maxHP/80))))
         victim.HP -= burn_damage
         return burn_damage
     elif status == st_para:
@@ -1972,7 +1998,11 @@ def status_calc(status,victim):
             victim.isPara = True
         else:
             victim.isPara = False
-
+    elif status == st_curse:
+        curse_damage = round(victim.maxHP/20 - random.choice(range(round(10 +  victim.maxHP/75))) + random.choice(range(10 + round(victim.maxHP/80)))) 
+        victim.HP -= curse_damage
+        return curse_damage
+    
 def dmg_calc(used_skill):
     leaveLearnSkill()
     global fight_turn
@@ -2019,13 +2049,16 @@ def dmg_calc(used_skill):
     elif isinstance(used_skill,Potion):
         fight_shown_text.append(['You use %s'%used_skill.name,black])
         Potion.activate_eff(used_skill)
-    # status effects (should be last effect that happens)
+    # status effects (status should be last effect that happens)
     for status in enemy.fight_status:
         if status == st_burn:
             burn_damage = status_calc(st_burn,enemy)
             fight_shown_text.append(['Enemy takes %i burn damage'%burn_damage,lightRed])
         elif status == st_para:
             status_calc(st_para,enemy)
+        elif status == st_curse:
+            curse_damage = status_calc(st_curse,enemy)
+            fight_shown_text.append(['Enemy takes %i curse damage'%curse_damage,lightRed])
     if enemy.HP <= 0:
         fight_shown_text.append(['You have defeated the enemy!',brown])
     # refresh
@@ -2062,6 +2095,15 @@ def fightDetailText(pg_num): # There are 2 pages with 6 textboxes
     textbox(fight_detail_text_list[pg_num][4][0],37,fight_detail_text_list[pg_num][4][1],350,225)
     textbox(fight_detail_text_list[pg_num][5][0],45,fight_detail_text_list[pg_num][5][1],350,275)#290
 
+def level_up_greet():
+    screen.fill(yellow)
+    textbox('You leveled up!',75,black,screenW/2,screenH/2)
+    pygame.mixer.music.load('complete.mp3')
+    pygame.mixer.music.load('complete.mp3')
+    pygame.mixer.music.play(0)
+    pygame.display.update()
+    time.sleep(1.75)
+
 def fight():
     global inFight
     global enemy
@@ -2075,14 +2117,16 @@ def fight():
     player.statUpdate()
     skillUpdate()
     player.run_away = False
-    player.fight_actives = [] # reset active skills
-    player.shield_hp = 0 # reset shields
-    resetCooldown() # reset cooldown
+    # resets
+    player.fight_actives = []
+    player.fight_status = []
+    player.shield_hp = 0
+    resetCooldown()
     #Enemy(self, name, img, HP,MP, damage,mag_damage, armor,mag_armor, hit,dodge,crit, loot,exp):
     #Low level mobs
-    alec = Enemy('Alec','alec.png',300,100, 70,50, 25,40, 95,5,5, 25,10)
+    alec = Enemy('Alec','alec.png',300,400, 70,100, 25,40, 95,5,5, 25,10)
     sungmin = Enemy('Sungmin','sungmin.png',400,75, 80,55, 25,25, 95,5,4, 30,15)
-    kaelan = Enemy('Kaelan','kaelan.png',450,40, 85,25, 40,10, 95,5,4, 35,17)
+    kaelan = Enemy('Kaelan','kaelan.png',425,40, 85,25, 40,10, 95,5,4, 35,17)
     #Medium level mobs
     alicky = Enemy('Alicky','alec.png',1500,500, 180,300, 200,200, 90,5,5, 125,100)
     sunger = Enemy('Sunger Munger','sungmin.png',1635,500, 200,250, 450,450, 92,5,5, 135,125)
@@ -2090,9 +2134,9 @@ def fight():
     ryan = Enemy('Ryan','ryan.png',1369,30, 100,5, 0,0, 120,50,50, 175,125)
     tina = Enemy('Tina','tina.png',3750,1000, 50,100, 300,600, 85,10,6, 200,100)
     #High level mobs
-    laluche = Enemy('La Lucha Libre','ryan.png',5000,100, 300,10, 0,0, 150,75,75, 400,150)
-    dyonghae = Enemy('Dyonghae','tina.png',7500,1500, 400,600, 700,900, 95,5,5, 200,300)
-    greasy_booga = Enemy('Greasy Booga','greasy_booga.png',10000,1200, 550,375, 800,800, 85,20,20, 500,300)
+    laluche = Enemy('La Lucha Libre','ryan.png',5000,100, 300,10, 0,0, 150,55,75, 400,150)
+    dyonghae = Enemy('Dyonghae','tina.png',8000,4000, 400,800, 700,900, 95,5,5, 200,300)
+    greasy_booga = Enemy('Greasy Booga','greasy_booga.png',11000,1200, 600,1000, 800,800, 85,20,20, 500,300)
     # Choose random enemy
     if player.LV < 5:
         enemy = random.choice([alec,sungmin,kaelan])
@@ -2128,7 +2172,9 @@ def fight():
             player.cash += enemy.loot
             player.exp += enemy.exp
             if player.exp >= player.max_exp:
+                level_up_greet()
                 player.level_up()
+                skillsPage()
                 fightAgain()
             else:
                 fightAgain()
@@ -2168,7 +2214,7 @@ def showActivesAndStatus():
         screen.blit(skill.img,centerIMG(80,80,50+x,525))
         x += 100
     x = 0
-    for stats in player.fight_status:
+    for status in player.fight_status:
         screen.blit(status,centerIMG(80,80,50+x,650))
         x += 100
     x = 0
@@ -2176,14 +2222,12 @@ def showActivesAndStatus():
         screen.blit(skill.img,centerIMG(80,80,700+x,525))
         x += 100
     x = 0
-    for stats in enemy.fight_status:
-        screen.blit(stats,centerIMG(80,80,700+x,650))
+    for status in enemy.fight_status:
+        screen.blit(status,centerIMG(80,80,700+x,650))
         x += 100   
 
 
 def fightAgain():
-    global inFight
-    inFight = True
     for aSkill in player.fight_actives:
         Active.loseEffect(aSkill)
     while inFight:

@@ -38,26 +38,28 @@ randColor2 = (random.choice(range(50,175)),random.choice(range(50,175)),random.c
 
 # Music/sounds
 def weapon_atk_sound():
-    atk_sound = pygame.mixer.Sound(random.choice(['atk1.wav','atk2.wav','atk3.wav','atk4.wav','atk5.wav','atk6.wav','atk7.wav']))
+    atk_sound = pygame.mixer.Sound(random.choice(['game/sounds/atk1.wav','game/sounds/atk2.wav','game/sounds/atk3.wav',\
+                                                  'game/sounds/atk4.wav','game/sounds/atk5.wav','game/sounds/atk6.wav','game/sounds/atk7.wav']))
     return atk_sound
-pygame.mixer.music.load('bgm_intro.mp3')
-heal = pygame.mixer.Sound('heal.wav')
-wear = pygame.mixer.Sound('wear.wav')
-buySound = pygame.mixer.Sound('buy.wav')
-potSound = pygame.mixer.Sound('pheal.wav')
-rank_up = pygame.mixer.Sound('rank_up.wav')
-pg_flip = pygame.mixer.Sound('page_flip.wav')
-crit = pygame.mixer.Sound('crit.wav')
-select = pygame.mixer.Sound('select.wav')
+pygame.mixer.music.load('game/music/bgm_intro.mp3')
+heal = pygame.mixer.Sound('game/sounds/heal.wav')
+wear = pygame.mixer.Sound('game/sounds/wear.wav')
+buySound = pygame.mixer.Sound('game/sounds/buy.wav')
+potSound = pygame.mixer.Sound('game/sounds/pheal.wav')
+rank_up = pygame.mixer.Sound('game/sounds/rank_up.wav')
+pg_flip = pygame.mixer.Sound('game/sounds/page_flip.wav')
+crit = pygame.mixer.Sound('game/sounds/crit.wav')
+select = pygame.mixer.Sound('game/sounds/select.wav')
+equip_sound = pygame.mixer.Sound('game/sounds/atk4.wav')
 #congrats = pygame.mixer.Sound('
 
 # Pictures
-small_arrow_left = pygame.image.load('small_arrow_left.png')
-small_arrow_right = pygame.image.load('small_arrow_right.png')
-st_burn = pygame.image.load('st_burn.png')
-st_para = pygame.image.load('st_para.png')
-st_bleed = pygame.image.load('st_bleed.png')
-st_curse = pygame.image.load('st_curse.png')
+small_arrow_left = pygame.image.load('game/general/small_arrow_left.png')
+small_arrow_right = pygame.image.load('game/general/small_arrow_right.png')
+st_burn = pygame.image.load('game/status/st_burn.png')
+st_para = pygame.image.load('game/status/st_para.png')
+st_bleed = pygame.image.load('game/status/st_bleed.png')
+st_curse = pygame.image.load('game/status/st_curse.png')
 
 # Global Variables
 inSome = False
@@ -133,7 +135,6 @@ class Player(object):
         self.fight_actives = []
         self.fight_status = []
         # Game
-        self.img = pygame.image.load('play_nor.png')
         self.X = 500
         self.Y = 600
         self.didmiss = None
@@ -336,9 +337,9 @@ class Skill(Action):
     def __init__(self,name,img,sound,desc,effdesc,requiredesc,maxRank):
         self.name = name
         if img != None:
-            self.img = pygame.image.load(img)
+            self.img = pygame.image.load('skills/%s'%img)
         if sound != None:
-            self.sound = pygame.mixer.Sound(sound)
+            self.sound = pygame.mixer.Sound('game/sounds/%s'%sound)
         self.desc = desc
         self.effdesc = effdesc
         self.requiredesc = requiredesc
@@ -494,38 +495,38 @@ class Passive(Skill):
             
             
 
-basic_attack = Physical('Basic Attack','fists.png',None,'Attack with your weapon','Deals physical damage','',0)
+basic_attack = Physical('Basic Attack',None,None,'Attack with your weapon','Deals physical damage','',0)
 # Mage Skills #1
 # attack skills
-ember = Magical('Ember','ember.png','fire.wav','Burn the enemy','Small chance to burn','',3)
-shower = Magical('Shower','shower.png','water.wav','Call the rain to fall','Increased hit rate','',3)
-breeze = Magical('Breeze','breeze.png','wind.wav','Blow the enemy away','Increased crit rate, decreased hit chance','',3)
-shock = Magical('Shock','shock.png','thunder.wav','Shock with electricity','Small chance to paralyze, small increased crit rate','',3)
-fireball = Magical('Fireball','fireball.png','fire.wav','Lob a ball of fire','Medium rate to burn','LV: 4, Ember: Rank 3',3)
-river = Magical('River','river.png','water.wav','Call a river','More increased hit rate','LV: 4, Shower: Rank: 3',3)
-gust = Magical('Gust','gust.png','wind.wav','Make the enemy fly','More increased crit rate, decreased hit chance','LV: 4, Breeze: Rank: 3',3)
-thunderbolt = Magical('Thunderbolt','thunderbolt.png','thunder.wav','Pikachu','Medium chance to paralyze, increased crit rate','LV: 4, Shock: Rank: 3',3)
-blaze = Magical('Blaze','blaze.png','fire.wav','Set enemy ablaze','High chance to burn','LV: 10, Fireball: Rank: 3',3)
-waterfall = Magical('Waterfall','waterfall.png','water.wav','A fall of water','Greatly increased hit rate', 'LV: 10, River: Rank: 3',3)
-whirlwind = Magical('Whirlwind','whirlwind.png','wind.wav','A strong wind','Greatly increased crit rate, decreased hit chance','LV: 10, Gust: Rank: 3',3)
-lightning = Magical('Lightning','lightning.png','thunder.wav','Electrify the enemy','High chance to paralyze, more increased crit rate',\
+ember = Magical('Ember','mage/damage/ember.png','fire.wav','Burn the enemy','Small chance to burn','',3)
+shower = Magical('Shower','mage/damage/shower.png','water.wav','Call the rain to fall','Increased hit rate','',3)
+breeze = Magical('Breeze','mage/damage/breeze.png','wind.wav','Blow the enemy away','Increased crit rate, decreased hit chance','',3)
+shock = Magical('Shock','mage/damage/shock.png','thunder.wav','Shock with electricity','Small chance to paralyze, small increased crit rate','',3)
+fireball = Magical('Fireball','mage/damage/fireball.png','fire.wav','Lob a ball of fire','Medium rate to burn','LV: 4, Ember: Rank 3',3)
+river = Magical('River','mage/damage/river.png','water.wav','Call a river','More increased hit rate','LV: 4, Shower: Rank: 3',3)
+gust = Magical('Gust','mage/damage/gust.png','wind.wav','Make the enemy fly','More increased crit rate, decreased hit chance','LV: 4, Breeze: Rank: 3',3)
+thunderbolt = Magical('Thunderbolt','mage/damage/thunderbolt.png','thunder.wav','Pikachu','Medium chance to paralyze, increased crit rate','LV: 4, Shock: Rank: 3',3)
+blaze = Magical('Blaze','mage/damage/blaze.png','fire.wav','Set enemy ablaze','High chance to burn','LV: 10, Fireball: Rank: 3',3)
+waterfall = Magical('Waterfall','mage/damage/waterfall.png','water.wav','A fall of water','Greatly increased hit rate', 'LV: 10, River: Rank: 3',3)
+whirlwind = Magical('Whirlwind','mage/damage/whirlwind.png','wind.wav','A strong wind','Greatly increased crit rate, decreased hit chance','LV: 10, Gust: Rank: 3',3)
+lightning = Magical('Lightning','mage/damage/lightning.png','thunder.wav','Electrify the enemy','High chance to paralyze, more increased crit rate',\
                     'LV: 10, Thunderbolt: Rank: 3',3)
-inferno = Magical('Inferno','inferno.png','fire.wav','The strongest flames in the game','Higher chance to burn','LV: 18, Blaze: Rank: 3',3)
-tsunami = Magical('Tsunami','tsunami.png','water.wav','Wash away the enemy','Greater increased hit rate','LV: 18, Waterfall: Rank: 3',3)
-tornado = Magical('Tornado','tornado.png','wind.wav','Blow away the enemy','Greater increased crit rate, decreased hit chance','LV: 18, Whirlwind: Rank: 3',3)
-thunderstorm = Magical('Thunderstorm','thunderstorm.png','thunder.wav','A storm of lightning','Higher chance to paralyze, Greatly increased crit rate',\
+inferno = Magical('Inferno','mage/damage/inferno.png','fire.wav','The strongest flames in the game','Higher chance to burn','LV: 18, Blaze: Rank: 3',3)
+tsunami = Magical('Tsunami','mage/damage/tsunami.png','water.wav','Wash away the enemy','Greater increased hit rate','LV: 18, Waterfall: Rank: 3',3)
+tornado = Magical('Tornado','mage/damage/tornado.png','wind.wav','Blow away the enemy','Greater increased crit rate, decreased hit chance','LV: 18, Whirlwind: Rank: 3',3)
+thunderstorm = Magical('Thunderstorm','mage/damage/thunderstorm.png','thunder.wav','A storm of lightning','Higher chance to paralyze, Greatly increased crit rate',\
                        'LV: 18, Lightning: Rank: 3',3)
 ## Actives
-mana_gaurd = Active('Mana Gaurd','mana_gaurd.png','pheal.wav','Mana gaurds your health','For 5 turns, take damage from mana instead of health','LV: 2',3)
-restore = Active('Restore','restore.png','heal.wav','Restore health','Restore health and gain temp. bonuses for 3 turns','LV: 4',5)
-barrier = Active('Barrier','barrier.png','charge.wav','Create a barrier','For 3 turns, create a shield','LV: 6',5)
-meditate = Active('Meditate','meditate.png','charge.wav','Focus your mind','Next spell deals massive damage','LV: 9',4)
+mana_gaurd = Active('Mana Gaurd','mage/active/mana_gaurd.png','pheal.wav','Mana gaurds your health','For 5 turns, take damage from mana instead of health','LV: 2',3)
+restore = Active('Restore','mage/active/restore.png','heal.wav','Restore health','Restore health and gain temp. bonuses for 3 turns','LV: 4',5)
+barrier = Active('Barrier','mage/active/barrier.png','charge.wav','Create a barrier','For 3 turns, create a shield','LV: 6',5)
+meditate = Active('Meditate','mage/active/meditate.png','charge.wav','Focus your mind','Next spell deals massive damage','LV: 9',4)
 
 ## Passivesonus
-max_mp_inc = Passive('Max MP +','max_mp_inc.png',None,'Expand your mind','Increases Maximum MP','',7)
-magic_mast = Passive('Spell Mastery','magic_mast.png',None,'Train your skills','Increases Luck/Hit/Crit Chance','LV: 5',5)
-mana_armor = Passive('Mana Armor','mana_armor.png',None,'Mana is Armor','Gain bonus Armor/Resist based on Current Max MP','LV: 8',3)
-as_one = Passive('As One','as_one.png',None,'You are one','Set Str/HP = 1, gain bonus MP based on difference','LV: 5',1)
+max_mp_inc = Passive('Max MP +','mage/passive/max_mp_inc.png',None,'Expand your mind','Increases Maximum MP','',7)
+magic_mast = Passive('Spell Mastery','mage/passive/magic_mast.png',None,'Train your skills','Increases Luck/Hit/Crit Chance','LV: 5',5)
+mana_armor = Passive('Mana Armor','mage/passive/mana_armor.png',None,'Mana is Armor','Gain bonus Armor/Resist based on Current Max MP','LV: 8',3)
+as_one = Passive('As One','mage/passive/as_one.png',None,'You are one','Set Str/HP = 1, gain bonus MP based on difference','LV: 5',1)
 
 
 # lists in list
@@ -543,7 +544,7 @@ def skillUpdate():
         basic_attack.mana = 0
         ### Damage Skills
         # Fire
-        ember.damage = round(75 + (player.mag_damage/1.8)*(1.8 * (1 + ember.rank)))
+        ember.damage = round(80 + (player.mag_damage/1.8)*(1.8 * (1 + ember.rank)))
         ember.mana = round(50 + ember.damage/(17-ember.rank) + ember.rank * 35)
         ember.burn_chance = round(15 + 3*ember.rank + player.mag_damage/(25 + player.mag_damage/4))
         fireball.damage = round(ember.damage + (player.mag_damage/1.75)*(1.8 * (1 + fireball.rank)))
@@ -651,7 +652,7 @@ class Item(object):
                  bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost):
         self.name = name
         self.cost = cost
-        self.img = pygame.image.load(img)
+        self.img = pygame.image.load('items/%s'%img)
         self.desc = desc
         self.bonusStren = bstr
         self.bonusIntel = bint
@@ -854,138 +855,135 @@ def givebdesc(aList):
 ### Shop
 ## pg1 Weapons 
 # Sword
-inner = Sword('Inner','inner.png','Strong base, weak tip',16,1,\
+inner = Sword('Inner','warrior/sword/inner.png','Strong base, weak tip',16,1,\
                4, 0, 0, 0, 0, 0, 0, 0, 0, 0, -15, 0, 0, 200)
-battleaxe = Axe('Battleaxe','battleaxe.png','Can chop a tree with one swing',30,2,\
-                   6, 0, 0, 0, 0, 0, 0, 0, 0, 0, -20, 0, 0, 460)
-katana = Sword('Katana','katana.png','A sharp sword that easily cuts',25,15,\
+katana = Sword('Katana','warrior/sword/katana.png','A sharp sword that easily cuts',25,15,\
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 450)
-scimitar = Sword('Scimitar','scimitar.png','A curved and very sharp blade',29,9,
+scimitar = Sword('Scimitar','warrior/sword/scimitar.png','A curved and very sharp blade',29,9,
                   12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1000)
 # Axe
+battleaxe = Axe('Battleaxe','warrior/axe/battleaxe.png','Can chop a tree with one swing',30,2,\
+                   6, 0, 0, 0, 0, 0, 0, 0, 0, 0, -20, 0, 0, 460)
+big_axe = Axe('Big Axe','warrior/axe/big_axe.png','A huge axe that can cause an earthquake',70,0,\
+                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4500)
 # Wand
-wand = Wand('Wand','wand.png','A wooden wand',3,7,\
+wand = Wand('Wand','mage/wand/app_wand.png','A wooden wand',3,7,\
             0, 5, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 225)
 
-mag_wand = Wand('Magic Wand','mag_wand.png','A magic wand',7,17,\
+mag_wand = Wand('Magic Wand','mage/wand/mag_wand.png','A magic wand',7,17,\
             0, 14, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 450)
 
-star_wand = Wand('Star Wand','star_wand.png','A Star wand',9,27,\
+star_wand = Wand('Star Wand','mage/wand/star_wand.png','A Star wand',9,27,\
             0, 25, 0, 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 800)
 
-element_wand = Wand('Element Wand','element_wand.png','An Elemental wand',14,50,\
+element_wand = Wand('Element Wand','mage/wand/element_wand.png','An Elemental wand',14,50,\
             0, 42, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 0, 1500)
 # Staff
-staff = Staff('Staff','staff.png','A wooden staff used by novice mages',5,9,\
+staff = Staff('Staff','mage/staff/app_staff.png','A wooden staff used by novice mages',5,9,\
                0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 250)
-mag_staff = Staff('Magic Staff','mag_staff.png','A staff powered up by magic',9,21,\
+mag_staff = Staff('Magic Staff','mage/staff/mag_staff.png','A staff powered up by magic',9,21,\
                      0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 500)
-star_staff = Staff('Star Staff','star_staff.png','A staff blessed by the power of the stars',10,32,\
+star_staff = Staff('Star Staff','mage/staff/star_staff.png','A staff blessed by the power of the stars',10,32,\
                     0, 31, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 900)
-element_staff = Staff('Elemental Staff','element_staff.png','A staff imbued with fire, wind and water',16,55,\
+element_staff = Staff('Elemental Staff','mage/staff/element_staff.png','A staff imbued with fire, wind and water',16,55,\
                        0, 47, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1600)
 # Dagger
-long_dag = Dagger('Long Dagger','long_dag.png','A long blade dagger',12,12,\
+long_dag = Dagger('Long Dagger','rouge/dagger/long_dag.png','A long blade dagger',12,12,\
                   0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 250)
-edge_dag = Dagger('Edged Dagger','edge_dag.png','A sharper dagger',18,18,\
+edge_dag = Dagger('Edged Dagger','rouge/dagger/edge_dag.png','A sharper dagger',18,18,\
                   0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 28, 550)
-poison_dag = Dagger('Poisoned Dagger','poison_dag.png','A dagger dipped in poison',23,23,\
+poison_dag = Dagger('Poisoned Dagger','rouge/dagger/poison_dag.png','A dagger dipped in poison',23,23,\
                     0, 0, 12, 12, 0, 0, 0, 0, 0, 0, 0, 0, 32, 650)
-balance_dag = Dagger('Balanced Dagger','balance_dag.png','Sharp and fast',32,32,\
+balance_dag = Dagger('Balanced Dagger','rouge/dagger/balance_dag.png','Sharp and fast',32,32,\
                      15, 15, 15, 15, 0, 0, 0, 0, 0, 0, 0, 0, 38, 875)
 # Shuriken
-
 # Balanced
-shortsword = Dagger('Shortsword','shortsword.png','A cheap, simple and easy to use sword',7,7,\
+shortsword = Dagger('Shortsword','balance/weapon/shortsword.png','A cheap, simple and easy to use sword',7,7,\
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 125)
-longsword = Sword('Longsword','longsword.png','A standard sword used by many swordsmen',19,5,\
+longsword = Sword('Longsword','balance/weapon/longsword.png','A standard sword used by many swordsmen',19,5,\
                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 225)
-tipper = Sword('Tipper','tipper.png','Strong at the tip but weak at the base',15,10,\
+tipper = Sword('Tipper','balance/weapon/tipper.png','Strong at the tip but weak at the base',15,10,\
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 200)
-def_sword = Sword('Defensive Sword','def_sword.png','Big and heavy sword',14,14,\
+def_sword = Sword('Defensive Sword','balance/weapon/def_sword.png','Big and heavy sword',14,14,\
                    0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 325)
 # Fun
-fire_sword = Sword('Fire Sword','fire_sword.png','Blaze Strike: +5 ranks, -15 mana cost',35,25,\
+fire_sword = Sword('Fire Sword','balance/weapon/fire_sword.png','Blaze Strike: +5 ranks, -15 mana cost',35,25,\
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1250)
-big_axe = Axe('Big Axe','big_axe.png','A huge axe that can cause an earthquake',70,0,\
-                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4500)
-fruit = Axe('The Fruits of Booga','fruit.png','Fruits saved when Booga dropped them from the sky',70,70,\
+fruit = Axe('The Fruits of Booga','fun/weapon/fruit.png','Fruits saved when Booga dropped them from the sky',70,70,\
                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6000)
-allin = Axe('All In','allin.png','HP set to 8',120,120,\
+allin = Axe('All In','fun/weapon/allin.png','HP set to 8',120,120,\
                50, 50, 50, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12000)
 shop_weapons_1 = [inner,battleaxe,katana,scimitar,shortsword,longsword,tipper,def_sword,staff,mag_staff,star_staff,element_staff,\
        long_dag,edge_dag,poison_dag,balance_dag,fire_sword,big_axe,fruit,allin]
 givebdesc(shop_weapons_1)
 ## pg2 Armors Body
 # Warrior
-bronze_body = Body('Bronze Armour','bronze_body.png','Armour made from bronze',\
+bronze_body = Body('Bronze Armour','warrior/body/bronze_body.png','Armour made from bronze',\
                    3, 0, 0, 0, 10, 0, 0, 0, 10, 2, 0, 0, 0, 100)
-iron_body = Body('Iron Armour','iron_body.png','Armour made from iron. Stronger than bronze',\
+iron_body = Body('Iron Armour','warrior/body/iron_body.png','Armour made from iron. Stronger than bronze',\
                  5, 0, 0, 0, 20, 0, 0, 0, 16, 4, 0, 0, 0, 250)
-steel_body = Body('Steel Armour','steel_body.png','Armour made from Steel. Stronger than iron',\
+steel_body = Body('Steel Armour','warrior/body/steel_body.png','Armour made from Steel. Stronger than iron',\
                   9, 0, 0, 0, 30, 0, 0, 0, 30, 6, 0, 0, 0, 650)
-dia_body = Body('Diamond Armour','dia_body.png','Armour made from Diamond. The strongest armour',\
+dia_body = Body('Diamond Armour','warrior/body/dia_body.png','Armour made from Diamond. The strongest armour',\
                 15, 0, 0, 0, 50, 0, 0, 0, 49, 9, 0, 0, 0, 1200)
 # Rouge
-cloak = Body('Cloak','cloak.png','A cloak made to blend in with the shadows',\
+cloak = Body('Cloak','rouge/body/cloak.png','A cloak made to blend in with the shadows',\
              0, 0, 5, 0, 0, 0, 0, 0, 7, 7, 0, 10, 0, 150)
-black_cloak = Body('Black Cloak','black_cloak.png','A cloak darker than the night',\
+black_cloak = Body('Black Cloak','rouge/body/black_cloak.png','A cloak darker than the night',\
                    0, 0, 8, 0, 0, 0, 0, 0, 12, 12, 5, 20, 0, 400)
-stealth_cloak = Body('Stealth Cloak','stealth_cloak.png','A cloak that blends in with its surroundings',\
+stealth_cloak = Body('Stealth Cloak','rouge/body/stealth_cloak.png','A cloak that blends in with its surroundings',\
                      0, 0, 12, 0, 0, 0, 0, 0, 20, 20, 10, 30, 0, 1000)
-ass_cloak = Body('''Assasin's Cloak''','ass_cloak.png','think ur good?',\
+ass_cloak = Body('''Assasin's Cloak''','rouge/body/ass_cloak.png','think ur good?',\
                  0, 0, 20, 0, 0, 0, 0, 0, 31, 31, 15, 40, 0, 1500)
 # Mage
-robe = Body('Robe','robe.png','A simple robe made from cloth',\
+robe = Body('Robe','mage/body/app_robe.png','A simple robe made from cloth',\
             0, 5, 0, 0, 0, 15, 0, 0, 5, 9, 0, 0, 0, 125)
-mag_robe = Body("Magician's Robe",'mag_robe.png','A robe used by experienced mages',\
+mag_robe = Body("Magician's Robe",'mage/body/mag_robe.png','A robe used by experienced mages',\
                 0, 10, 0, 0, 0, 30, 0, 0, 8, 16, 0, 0, 0, 300)
-star_robe = Body('Star Robe','star_robe.png','A robe blessed by the stars above',\
+star_robe = Body('Star Robe','mage/body/star_robe.png','A robe blessed by the stars above',\
                  0, 15, 0, 0, 0, 45, 0, 0, 13, 31, 0, 0, 0, 800)
-element_robe = Body('Elemental Robe','element_robe.png','A robe that gaurds the 3 elements',\
+element_robe = Body('Elemental Robe','mage/body/element_robe.png','A robe that gaurds the 3 elements',\
                     0, 30, 0, 0, 0, 70, 0, 0, 21, 43, 0, 0, 0, 1350)
 # Balanced
-leather = Body('Leather Armour','leather.png','Cheap and durable armour',\
+blanket = Body('Blanket','balance/body/blanket.png','A blanket to sleep with',\
+               1, 2, 3, 4, 8, 8, 1, 1, 2, 2, 5, 5, 5, 75)
+leather = Body('Leather Armour','balance/body/leather.png','Cheap and durable armour',\
                1, 1, 1, 1, 0, 0, 0, 0, 5, 5, 0, 0, 0, 60)
-chain = Body('Chainmail','chain.png','Chains made from steel',\
+chain = Body('Chainmail','balance/body/chain.png','Chains made from steel',\
              0, 0, 0, 0, 0, 0, 0, 0, 42, 6, 0, 0, 0, 900)
-machine = Body('Machine','machine.png','dunno GG',\
-               0, 0, 0, 0, 0, 0, 0, 0, 45, 25, 0, 0, 0, 1100)
-reflect = Body('Reflector','reflect.png','Deal half of any magic dmg taken',\
+reflect = L_hand('Reflector','balance/left/reflect.png','Any magic dmg taken, deal back half',\
                0, 0, 0, 0, 0, 0, 0, 0, 30, 100, 0, 0, 0, 3000)
 # Fun
-blanket = Body('Blanket','blanket.png','A blanket to sleep with',\
-               1, 2, 3, 4, 8, 8, 1, 1, 2, 2, 5, 5, 5, 75)
-toast = Body('Toast','toast.png','All toasters toast toast',\
+toast = Body('Toast','fun/body/toast.png','All toasters toast toast',\
              0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 0, 4500)
-smile = Body('Smile','smile.png','A smile can make you happy',\
+smile = L_hand('Smile','fun/left/smile.png','A smile can make you happy',\
              0, 0, 0, 0, 0, 0, 0, 0, 50, 200, 0, 0, 0, 5000)
-god = Body('God of Elements','god.png','Control the elements as you will',\
+god = Body('God of Elements','fun/body/god.png','Control the elements as you will',\
            0, 0, 0, 0, 0, 0, 0, 0, 500, 800, 0, 0, 0, 10000)
 
 shop_body_1 = [bronze_body,iron_body,steel_body,dia_body,cloak,black_cloak,stealth_cloak,ass_cloak,robe,mag_robe,star_robe,element_robe,\
-       leather,chain,machine,reflect,blanket,toast,smile,god]
+       leather,chain,reflect,blanket,toast,smile,god]
 givebdesc(shop_body_1)
 
 ##pg3 Left hand
 #mage
-shld_wood = L_hand('Wooden Shield','shld_wood.png','A shield made from wood',\
+shld_wood = L_hand('Wooden Shield','mage/left/shld_wood.png','A shield made from wood',\
                     0, 0, 0, 0, 15, 75, 0, 0, 17, 37, 0, 0, 0, 400)
-shld_mana = L_hand('Mana Shield','shld_mana.png','Shield imbued with mana',\
+shld_mana = L_hand('Mana Shield','mage/left/shld_mana.png','Shield imbued with mana',\
                    0, 0, 0, 0, 30, 150, 0, 0, 48, 75, 0, 0, 0, 900)
-shld_star = L_hand('Star Shield','shld_star.png','Stars is your shield',\
+shld_star = L_hand('Star Shield','mage/left/shld_star.png','Stars is your shield',\
                    0, 0, 0, 0, 45, 450, 0, 0, 72, 134, 0, 0, 0, 1900)
-shld_element = L_hand('Elemental Shield','shld_element.png','The elements gaurds you',\
+shld_element = L_hand('Elemental Shield','mage/left/shld_element.png','The elements gaurds you',\
                       0, 0, 0, 0, 75, 600, 0, 0, 100, 215, 0, 0, 0, 4200)
 ##pg4 Head(helmets)
 #mage
-app_hat = Head("Apprentice's Hat",'app_hat.png','A hat used by apprentices',\
+app_hat = Head("Apprentice's Hat",'mage/head/app_hat.png','A hat used by apprentices',\
               0, 5, 0, 0, 0, 0, 0, 0, 12, 40, 0, 0, 0, 500)
-mage_hat = Head('Mage Hat','mage_hat.png','Experienced mages wears this',\
+mage_hat = Head('Mage Hat','mage/head/mage_hat.png','Experienced mages wears this',\
                0, 10, 0, 0, 0, 0, 0, 0, 32, 75, 0, 0, 0, 1100)
-star_hat = Head('Star Hat','star_hat.png','This hat glows a bit',\
+star_hat = Head('Star Hat','mage/head/star_hat.png','This hat glows a bit',\
                0, 18, 0, 0, 0, 0, 0, 0, 60, 152, 0, 0, 0, 2500)
-element_hat = Head('Element Hat','element_hat.png','Focus the elements',\
+element_hat = Head('Element Hat','mage/head/element_hat.png','Focus the elements',\
                   0, 40, 0, 0, 0, 0, 0, 0, 100, 210, 0, 0, 0, 5000)
 
 
@@ -1010,23 +1008,23 @@ shop_pg = [shop_alpha_mage1]
 
 
 # Starting Weapons
-fists = Axe('Fists','fists.png','Bare hands (cannot unequip)',1,1,\
+fists = Axe('Fists','basic/fists.png','Bare hands (cannot unequip)',1,1,\
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-basic_wand = Wand('Basic Wand','bas_wand.png','A basic wand',2,6,\
+basic_wand = Wand('Basic Wand','basic/bas_wand.png','A basic wand',2,6,\
                     0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-basic_dag = Dagger('Basic Dagger','bas_dag.png','A basic dagger',4,4,\
+basic_dag = Dagger('Basic Dagger','basic/bas_dag.png','A basic dagger',4,4,\
                    0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-basic_sword = Sword('Basic Sword','normal.png','A basic sword',6,2,\
+basic_sword = Sword('Basic Sword','basic/bas_sword.png','A basic sword',6,2,\
                      2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 # Strating armors
-fap = L_hand('Left Hand','start_left.png','Fap Fap Fap (cannot unequip)',\
+fap = L_hand('Left Hand','basic/start_left.png','Fap Fap Fap (cannot unequip)',\
                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-china_hat = Head('China Hat','start_head.png','Offers no protection (cannot unequip)',\
+china_hat = Head('China Hat','basic/start_head.png','Offers no protection (cannot unequip)',\
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-shirt_jeans = Body('Shirt and Jeans','start_body.png','Offers no protection (cannot unequip)',\
+shirt_jeans = Body('Shirt and Jeans','basic/start_body.png','Offers no protection (cannot unequip)',\
                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-no_left = L_hand('Cannot Equip','no.png','Two-handed weapon equipped',\
+no_left = L_hand('Cannot Equip','basic/no.png','Two-handed weapon equipped',\
                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
 start_items = [fap,china_hat,shirt_jeans,fists,basic_wand,basic_dag,basic_sword,no_left]
@@ -1060,11 +1058,11 @@ class Potion(Item):
             player.inv.append(None)
 
 # Potions
-pot_hp = Potion('Health Potion','pot_hp.png','A simple potion that restores health','Restore: +500 HP',\
+pot_hp = Potion('Health Potion','potion/pot_hp.png','A simple potion that restores health','Restore: +500 HP',\
            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 75)
-pot_mp = Potion('Mana Potion','pot_mp.png','A simple potion that restores mana','Restore: +400 MP',\
+pot_mp = Potion('Mana Potion','potion/pot_mp.png','A simple potion that restores mana','Restore: +400 MP',\
            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100)
-pot_purple = Potion('Purple Potion','pot_purple.png','A potion that restores both health and mana','Restore: +350 HP, +350 MP',\
+pot_purple = Potion('Purple Potion','potion/pot_purple.png','A potion that restores both health and mana','Restore: +350 HP, +350 MP',\
            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 125)
 hospital_pots = [pot_hp,pot_mp,pot_purple]
 for i in range(15):
@@ -1107,6 +1105,7 @@ class Mage(Player):
     def __init__(self):
         super(Mage,self).__init__()
         self.job = 'Mage'
+        self.img = pygame.image.load('game/player/play_mage.png')
     def maxHPU(self):
         stat = round(325 + self.stren*11.47 + self.LV*38)
         return stat
@@ -1170,7 +1169,7 @@ class Rouge(Player):
 class Enemy:
     def __init__(self, name, img, HP, MP, damage, mag_damage, armor, mag_armor, hit, dodge, crit, loot, exp):
         self.name = name
-        self.img = pygame.image.load(img)
+        self.img = pygame.image.load('game/enemy/%s'%img)
         self.maxHP = HP
         self.maxMP = MP
         self.HP = HP
@@ -1344,7 +1343,7 @@ def instructions_2():
             if event.type == pygame.QUIT:
                 quitGame()
         screen.fill(white)
-        screen.blit(pygame.image.load('instruct_1.png',),(0,0))
+        screen.blit(pygame.image.load('game/general/instruct_1.png'),(0,0))
         if timer >= 80:
             button('OKAY',30,screenW/2-26,525,100,100,green,lightGreen,leaveSome,None)
         pygame.display.update()
@@ -1475,8 +1474,7 @@ def checkEquip(slot):
             if saved_item != None:   # put weapon in inv
                 player.inv[player.numItemInv] = saved_item
                 player.numItemInv += 1
-            sound = pygame.mixer.Sound('atk4.wav')
-            sound.play()
+            equip_sound.play()
             time.sleep(0.3)
         else:
             textbox('Requirements not met!',50,black,500,500)
@@ -1488,8 +1486,7 @@ def checkEquip(slot):
         player.inv[player.numItemInv] = player.weapon
         player.numItemInv += 1
         player.weapon = fists
-        sound = pygame.mixer.Sound('atk4.wav')
-        sound.play()
+        equip_sound.play()
     # put body on
     elif isinstance(slot,Body) and slot is not player.body: #and player.body == shirt_jeans
         saved_item = None
@@ -2098,8 +2095,8 @@ def fightDetailText(pg_num): # There are 2 pages with 6 textboxes
 def level_up_greet():
     screen.fill(yellow)
     textbox('You leveled up!',75,black,screenW/2,screenH/2)
-    pygame.mixer.music.load('complete.mp3')
-    pygame.mixer.music.load('complete.mp3')
+    pygame.mixer.music.load('game/music/complete.mp3')
+    pygame.mixer.music.load('game/music/complete.mp3')
     pygame.mixer.music.play(0)
     pygame.display.update()
     time.sleep(1.75)
@@ -2145,8 +2142,8 @@ def fight():
     else:
         enemy = random.choice([laluche,dyonghae,greasy_booga])
     ### Music
-    pygame.mixer.music.load(random.choice(['bgm_fight1.mp3','bgm_fight2.mp3','bgm_fight3.mp3',\
-                                           'bgm_fight4.mp3','bgm_fight5.mp3','bgm_fight6.mp3','bgm_fight7.mp3']))
+    pygame.mixer.music.load(random.choice(['game/music/bgm_fight1.mp3','game/music/bgm_fight2.mp3','game/music/bgm_fight3.mp3',\
+                                           'game/music/bgm_fight4.mp3','game/music/bgm_fight5.mp3','game/music/bgm_fight6.mp3','game/music/bgm_fight7.mp3']))
     pygame.mixer.music.play(-1)
     ##############################
     inFight = True
@@ -2248,7 +2245,7 @@ def leaveFight():
         Active.loseEffect(aSkill)
     player.X = 800
     pygame.mixer.music.stop()
-    pygame.mixer.music.load('bgm_home.mp3')
+    pygame.mixer.music.load('game/music/bgm_home.mp3')
     pygame.mixer.music.play(-1)
 
 def runChance():
@@ -2380,7 +2377,7 @@ def game_loop():
 ##    addItem(bronze_body)
 ##    addItem(staff)
     # images in game
-    bg = pygame.image.load('hometown.png')
+    bg = pygame.image.load('game/general/hometown.png')
     # player coordinates
     player.X = 500
     player.Y = 600
@@ -2394,7 +2391,7 @@ def game_loop():
     player.healFullMP()
     player.cash = 125
     play = True
-    pygame.mixer.music.load('bgm_home.mp3')
+    pygame.mixer.music.load('game/music/bgm_home.mp3')
     pygame.mixer.music.play(-1)
     while play:
         screen.blit(bg,(0,0))

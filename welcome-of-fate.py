@@ -1726,7 +1726,7 @@ def removeSkill(slot):
                     player.learned_skills.remove(slot)
                     player.learned_skills.append(None)
                     player.numLearnedSkills -= 1
-                    sound = pygame.mixer.Sound('buy.wav')
+                    sound = pygame.mixer.Sound('game/sounds/buy.wav')
                     sound.play()
                     asking = False
                 elif event.key == pygame.K_e:
@@ -1756,7 +1756,7 @@ def sellItem(slot):
                         player.inv.remove(slot)
                         player.inv.append(None)
                         player.numItemInv -= 1
-                    sound = pygame.mixer.Sound('buy.wav')
+                    sound = pygame.mixer.Sound('game/sounds/buy.wav')
                     sound.play()
                     want = False
                 elif event.key == pygame.K_e:
@@ -2127,17 +2127,17 @@ def fight():
     resetCooldown()
     #Enemy(self, name, img, HP,MP, damage,mag_damage, armor,mag_armor, hit,dodge,crit, loot,exp):
     #Low level mobs
-    alec = Enemy('Alec','alec.png',300,130, 70,100, 25,40, 95,5,5, 35,12)
-    sungmin = Enemy('Sungmin','sungmin.png',400,500, 80,55, 25,25, 95,5,4, 38,14)
-    kaelan = Enemy('Kaelan','kaelan.png',425,40, 85,25, 40,10, 95,5,4, 42,16)
+    alec = Enemy('Alec','alec.png',300,130, 70,100, 25,40, 95,5,5, 50,12)
+    sungmin = Enemy('Sungmin','sungmin.png',400,500, 80,55, 25,25, 95,5,4, 50,14)
+    kaelan = Enemy('Kaelan','kaelan.png',425,40, 85,25, 40,10, 95,5,4, 60,16)
     #Medium level mobs
-    alicky = Enemy('Alicky','alec.png',1500,500, 180,250, 100,125, 90,5,5, 125,100)
-    sunger = Enemy('Sunger Munger','sungmin.png',1635,1000, 125,125, 450,450, 92,5,5, 135,125)
-    brownitron = Enemy('Brownitron','kaelan.png',1825,400, 175,125, 300,300, 87,5,4, 150,150)
-    ryan = Enemy('Ryan','ryan.png',1369,30, 100,5, 0,0, 120,50,50, 175,125)
+    alicky = Enemy('Alicky','alec.png',1500,500, 180,250, 175,125, 90,5,5, 125,100)
+    sunger = Enemy('Sunger Munger','sungmin.png',1635,1000, 115,200, 150,150, 92,5,5, 135,125)
+    brownitron = Enemy('Brownitron','kaelan.png',1825,400, 130,125, 200,200, 87,5,4, 150,150)
+    ryan = Enemy('Ryan','ryan.png',1369,30, 500,30, 0,0, 120,60,50, 175,125)
     tina = Enemy('Tina','tina.png',2000,1000, 50,100, 200,175, 85,10,6, 200,100)
     #High level mobs
-    laluche = Enemy('La Lucha Libre','ryan.png',5000,100, 300,10, 0,0, 150,55,75, 400,150)
+    laluche = Enemy('La Lucha Libre','ryan.png',5000,100, 800,10, 0,0, 150,60,75, 400,150)
     dyonghae = Enemy('Dyonghae','tina.png',8000,4000, 400,800, 700,900, 95,5,5, 200,300)
     greasy_booga = Enemy('Greasy Booga','greasy_booga.png',11000,1200, 600,1000, 800,800, 85,20,20, 500,300)
     # Choose random enemy
@@ -2174,7 +2174,7 @@ def fight():
         if enemy.HP <= 0:
             player.cash += enemy.loot
             player.exp += enemy.exp
-            if corpse_drain.bonus_chance >= random.choice(range(100)):
+            if corpse_drain.bonus_chance >= random.choice(range(101)):
                     player.MP += round(player.maxMP*.20)
                     trimExtraHPMP()
             if player.exp >= player.max_exp:
@@ -2404,8 +2404,14 @@ def game_loop():
     play = True
     pygame.mixer.music.load('game/music/bgm_home.mp3')
     pygame.mixer.music.play(-1)
+    timer = 0
     while play:
         screen.blit(bg,(0,0))
+        timer += 1
+        if timer <= 300:
+            textbox('Equip a weapon. Press 1 and click your weapon to equip',35,black,screenW/2,300)
+        elif timer <= 600:
+            textbox('Rank up a skill. Press 3 and click a skill to it rank up',35,black,screenW/2,300)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quitGame()
@@ -2450,6 +2456,7 @@ def game_loop():
         # Level one dungeon
         if player.X > screenW - 100:
             pygame.mixer.music.stop()
+            timer = 650
             fight()
             player.Xchange = 0
             player.Ychange = 0

@@ -127,7 +127,7 @@ class Player(object):
         # General
         self.LV = 1
         self.AP = 5
-        self.SP = 100
+        self.SP = 1
         self.exp = 0
         self.max_exp = 12
         self.cash = 0
@@ -427,7 +427,6 @@ class Physical(Skill):
     def __init__(self,name,img,sound,desc,effdesc,requiredesc,maxRank):
         super(Physical,self).__init__(name,img,sound,desc,effdesc,requiredesc,maxRank)
         self.type = 'Spell'
-
 class Magical(Skill):
     def __init__(self,name,img,sound,desc,effdesc,requiredesc,maxRank):
         super(Magical,self).__init__(name,img,sound,desc,effdesc,requiredesc,maxRank)

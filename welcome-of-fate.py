@@ -1781,30 +1781,33 @@ def addItem(item):
         player.numItemInv += 1
 
 def buyItem(slot):
-    global inSome
-    if player.cash < slot.cost:
-        textbox('Not enough gold!',30,blue,775,425)
-    else:
-        want = True
-        while want:
-            screen.fill(lime)
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    quitGame()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_q:
-                        player.cash -= slot.cost
-                        addItem(slot)
-                        buySound.play()
-                        want = False
-                    elif event.key == pygame.K_e:
-                        want = False
-            textbox('Are you sure you want to buy this?',65,black,screenW/2,200)
-            textbox('%s'%slot.name,80,red,screenW/2,315)
-            textbox('$%i - $%i = $%i'%(player.cash,slot.cost,(player.cash-slot.cost)),65,black,screenW/2,440)
-            textbox('Press (Q: Yes /E: No)',65,black,screenW/2,550)
-            status_bar()
-            pygame.display.update()
+    if slot != None:
+        if player.cash < slot.cost:
+            if inStore:
+                textbox('Not enough gold!',30,blue,775,425)
+            elif inHosp:
+                textbox('Not enough gold!',30,blue,825,175)
+        else:
+            want = True
+            while want:
+                screen.fill(lime)
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        quitGame()
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_q:
+                            player.cash -= slot.cost
+                            addItem(slot)
+                            buySound.play()
+                            want = False
+                        elif event.key == pygame.K_e:
+                            want = False
+                textbox('Are you sure you want to buy this?',65,black,screenW/2,200)
+                textbox('%s'%slot.name,80,red,screenW/2,315)
+                textbox('$%i - $%i = $%i'%(player.cash,slot.cost,(player.cash-slot.cost)),65,black,screenW/2,440)
+                textbox('Press (Q: Yes /E: No)',65,black,screenW/2,550)
+                status_bar()
+                pygame.display.update()
 
 def itemValue(slot):
     if inStore and not inInv and slot != None: # IN STORE DETAILS
@@ -2303,6 +2306,7 @@ def shop():
         if pg_num + 1 <= len(shop_pg):
             screen.blit(small_arrow_right,centerIMG(30,30,560,screenH/2-30))
         #########################
+        textbox('Cash: %i'%player.cash,60,yellow,775,560)
         textbox(str(pg_num),45,black,775,650)
         textbox('Press E to leave',15,black,775,485)
         status_bar()
@@ -2357,6 +2361,7 @@ def hospital():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_e:
                     inHosp = False
+        textbox('Cash: %i'%player.cash,40,yellow,140,175)
         matrixSlot(6,3,hospital_pots,150,300,125,125)
         textbox('(Potions are usable in battle)',20,black,300,675)
         textbox('Press E to leave',20,black,800,675)

@@ -2137,12 +2137,12 @@ def fight():
     alicky = Enemy('Alicky','alec.png',1500,500, 180,250, 175,125, 90,5,5, 125,100)
     sunger = Enemy('Sunger Munger','sungmin.png',1635,1000, 115,200, 150,150, 92,5,5, 135,125)
     brownitron = Enemy('Brownitron','kaelan.png',1825,400, 130,125, 200,200, 87,5,4, 150,150)
-    ryan = Enemy('Ryan','ryan.png',1369,30, 500,30, 0,0, 120,60,50, 175,125)
+    ryan = Enemy('Ryan','ryan.png',1369,0, 500,10, 0,0, 120,60,50, 175,125)
     tina = Enemy('Tina','tina.png',2000,1000, 50,100, 200,175, 85,10,6, 200,100)
     #High level mobs
-    laluche = Enemy('La Lucha Libre','ryan.png',5000,100, 800,10, 0,0, 150,60,75, 400,150)
-    dyonghae = Enemy('Dyonghae','tina.png',8000,4000, 400,800, 700,900, 95,5,5, 200,300)
-    greasy_booga = Enemy('Greasy Booga','greasy_booga.png',11000,1200, 600,1000, 800,800, 85,20,20, 500,300)
+    laluche = Enemy('La Lucha Libre','ryan.png',5000,0, 800,10, 0,0, 150,60,75, 400,150)
+    dyonghae = Enemy('Dyonghae','tina.png',7500,4000, 400,1200, 700,900, 95,5,5, 200,300)
+    greasy_booga = Enemy('Greasy Booga','greasy_booga.png',10500,1200, 800,600, 800,800, 85,20,20, 500,300)
     # Choose random enemy
     if player.LV < 5:
         enemy = random.choice([alec,sungmin,kaelan])
@@ -2421,6 +2421,8 @@ def game_loop():
             if event.type == pygame.QUIT:
                 quitGame()
             elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:
+                    pygame.display.toggle_fullscreen()
                 if event.key == pygame.K_a:
                     player.img = rotate_img(player.direction,2,player.img)
                     player.direction = 2

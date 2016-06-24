@@ -61,21 +61,6 @@ st_para = pygame.image.load('game/status/st_para.png')
 st_bleed = pygame.image.load('game/status/st_bleed.png')
 st_curse = pygame.image.load('game/status/st_curse.png')
 
-# Global Variables
-inSome = False
-inFight = False
-inStore = False
-inInv = False
-inHosp = False
-inSkill = False
-inLearnSkill = False
-
-# For fight
-fight_detail_text_list = [[['',black],['',black],['',black],['',black],['',black],['',black]],\
-                          [['',black],['',black],['',black],['',black],['',black],['',black]],\
-                          [['',black],['',black],['',black],['',black],['',black],['',black]]]    # (text,color)
-text_detail_pg_num = 1
-fight_shown_text = []
 class Player(object):
     def __init__(self):
         self.name = ''
@@ -1204,6 +1189,55 @@ class Enemy:
         self.curse.mana = round(self.mag_damage*1.43)
         self.curse.curse_chance = 33
 
+
+class Page:
+    def __init__(self):
+        self.show = False
+    def enter(self):
+        self.show = True
+    def leave(self):
+        self.show = False
+
+inSome = Page()
+inFight = Page()
+inStore = Page()
+inInv = Page()
+inHosp = Page()
+inSkill = Page()
+inLearnSkill = Page()
+
+class switchTextbox: #each page has x amount of columns of textboxes
+    def __init__(self,pages,column):
+        self.text_list = [] # each row has ['text',color]
+        startText = []
+        for page in range(pages):
+            for col in range(column):
+                startText.append(['',black])
+            self.text_list.append(startText)
+            startText = []
+        print(self.text_list)
+        self.column = column
+        self.pg_num = 1
+        self.pages = pages - 1
+    def addText(self,newTextList):
+        del self.text_list[0]
+        new_text_list = []
+        for col in range(self.column):
+            new_text_list.append(['',black])            
+        self.text_list.append(new_text_list)
+        for text in newTextList:
+            del self.text_list[self.pages][0]
+            self.text_list[self.pages].append(text)
+    def showText(self,textSizeList,x,y,x_dis,y_dis):
+        xdis = 0
+        ydis = 0
+        for col in range(self.column):
+            textbox(self.text_list[self.pg_num][col][0],textSizeList[col],self.text_list[self.pg_num][col][1],x+xdis,y+ydis)
+            x += x_dis
+            y += y_dis
+
+fightText = switchTextbox(2,6)
+
 player = 'some Mage/Rouge/Warrior()'
 enemy = 'some Enemy()'
 name = ''
@@ -1251,21 +1285,16 @@ def quitGame():
     pygame.quit()
     quit()
 
-def leaveSome():
-    global inSome
-    inSome = False
-
 def gameover():
-    global inSome
-    inSome = True
-    while inSome:
+    inSome.enter()
+    while inSome.show:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quitGame()
         screen.fill(white)
         textbox('You Died! Try Again?',50,black,screenW/2,325)
         textbox('(you will lose all money)',30,black,screenW/2,380)
-        button('Yes',80,200,450,200,200,green,lightGreen,leaveSome,None)
+        button('Yes',80,200,450,200,200,green,lightGreen,inSome.leave,None)
         button('No',80,650,450,200,200,red,lightRed,quitGame,None)
         pygame.display.update()
     player.healFullHP()
@@ -1273,18 +1302,17 @@ def gameover():
     time.sleep(0.5)
 
 def status_bar():
-    if player.shield_hp > 0 and inFight and not inInv and not inSome:
+    if player.shield_hp > 0 and inFight.show and not inInv.show and not inSome.show and not inSkill.show:
         textbox('Shield: %i'%player.shield_hp,50,orange,500,650)
     textbox(player.name,30,black,80,725)
     textbox(('LV %i     HP  %i / %i   MP  %i / %i' %(player.LV,player.HP,player.maxHP,player.MP,player.maxMP)),40,black,600,725)
 
 def intro():
-    global inSome
     global name
     # music
     pygame.mixer.music.play(-1)
-    inSome = True
-    while inSome:
+    inSome.show = True
+    while inSome.show:
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 ### user input for name
@@ -1318,10 +1346,8 @@ def checkLenName(name):
         instructions()
 
 def instructions():
-    global inSome
-    inSome = True
     timer = 0
-    while inSome:
+    while inSome.show:
         timer += 1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -1338,10 +1364,8 @@ def instructions():
         pygame.display.update()
 
 def instructions_2():
-    global inSome
-    inSome = True
     timer = 0
-    while inSome:
+    while inSome.show:
         timer += 1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -1349,14 +1373,13 @@ def instructions_2():
         screen.fill(white)
         screen.blit(pygame.image.load('game/general/instruct_1.png'),(0,0))
         if timer >= 80:
-            button('OKAY',30,screenW/2-26,525,100,100,green,lightGreen,leaveSome,None)
+            button('OKAY',30,screenW/2-26,525,100,100,green,lightGreen,inSome.leave,None)
         pygame.display.update()
 
 def stats():
     player.statUpdate()
-    global inSome
-    inSome = True
-    while inSome:
+    inSome.show = True
+    while inSome.show:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quitGame()
@@ -1381,33 +1404,15 @@ def stats():
         textbox(('AP (Ability Points) Available: %i' %player.AP),30,black,700,320)
         # Finished
         if player.AP == 0:
-            button('Continue',30,850,screenH/1.35,75,75,green,lightGreen,leaveSome,None)
+            button('Continue',30,850,screenH/1.35,75,75,green,lightGreen,inSome.leave,None)
         status_bar()
         pygame.display.update()
         clock.tick(15)
 
 
-def selected_job(selected_job):
-    global player
-    global inSome
-    global name
-    if selected_job == 'Mage':
-        player = Mage()
-        player.name = name
-        inSome = False
-        del name
-    elif selected_job == 'Warrior':
-        textbox('Available soon!',80,black,screenW/2,200)
-        #player = Warrior()
-    else:
-        textbox('Available soon!',80,black,screenW/2,200)
-        #player = Rouge()
-    
-
 def job_select():
-    global inSome
-    inSome = True
-    while inSome:
+    inSome.show = True
+    while inSome.show:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quitGame()
@@ -1421,17 +1426,32 @@ def job_select():
         textbox('Warrior: Strong and sturdy, high physical dmg and armor but low hit chance and weak to magic',23,lightRed,screenW/2,700)
         pygame.display.update()
 
+def selected_job(selected_job):
+    global player
+    global name
+    if selected_job == 'Mage':
+        player = Mage()
+        player.name = name
+        inSome.show = False
+        del name
+    elif selected_job == 'Warrior':
+        textbox('Available soon!',80,black,screenW/2,200)
+        #player = Warrior()
+    else:
+        textbox('Available soon!',80,black,screenW/2,200)
+        #player = Rouge()
+
+
 def statsPage():
     player.statUpdate()
-    global inSome
-    inSome = True
-    while inSome:
+    inSome.show = True
+    while inSome.show:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quitGame()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_2:
-                    inSome = False
+                    inSome.show = False
         screen.fill(cyan)
         status_bar()
         textbox('STATS',60,lightRed,screenW/2,40)
@@ -1576,12 +1596,11 @@ def trimExtraHPMP():
         player.MP = player.maxMP
 
 def slotButton(slot,x,y,w,h):
-    global inInv
     mouse = pygame.mouse.get_pos()
     click = pygame.mouse.get_pressed()
 ##    player.skillUpdate()
     #print(click) (left click,scroll click, right click)
-    if inSkill or inLearnSkill: # skill page shows if requirement is met
+    if inSkill.show or inLearnSkill.show: # skill page shows if requirement is met
         if slot != None:
             if slot.skill_requirement():
                 if x+w > mouse[0] > x and y+h > mouse[1] > y:  # show box and highlight when mouse hovers over
@@ -1593,7 +1612,8 @@ def slotButton(slot,x,y,w,h):
                     pygame.draw.rect(screen, orange, (x,y,w,h))
                 else:
                     pygame.draw.rect(screen, brown, (x,y,w,h))
-    elif inFight and not inInv: # some reason when using skill the boxes show up so i use this to not show boxes after using skill (?????????????????)
+    elif inFight.show and not inInv.show: # some reason when using skill the boxes show up so i use this to not show boxes after using skill (?????????????????)
+        # i know why the boxes show up its bcuz enemy attack overlaps screen and then closes :(
         if slot != None:
             if x+w > mouse[0] > x and y+h > mouse[1] > y:  # show box and highlight when mouse hovers over
                 pygame.draw.rect(screen, green, (x,y,w,h))
@@ -1609,13 +1629,13 @@ def slotButton(slot,x,y,w,h):
         screen.blit(slot.img,centerIMG(80,80,x+w/2,y+h/2))
     # When mouse hover slot box
     if x+w > mouse[0] > x and y+h > mouse[1] > y:
-        if inSkill or inLearnSkill:
-            if not inFight or enemy.HP <= 0:
+        if inSkill.show or inLearnSkill.show:
+            if not inFight.show or enemy.HP <= 0:
                 if slot != None:
                     itemValue(slot)
                 if pygame.mouse.get_pressed()[0]:
                     # rank up skill
-                    if not inFight or enemy.HP <= 0:
+                    if not inFight.show or enemy.HP <= 0:
                         if player.SP > 0 and slot != None:
                             if player.numLearnedSkills != player.numMaxSkills:
                                 if slot.skill_requirement():
@@ -1680,23 +1700,23 @@ def slotButton(slot,x,y,w,h):
                                 textbox('Cannot use Passive!',50,blue,800,235)
                             else:
                                 dmg_calc(slot) # regular attack
-        elif inInv:
+        elif inInv.show:
             if slot != None:
                 itemValue(slot)
-            if not inFight:
+            if not inFight.show:
                 if pygame.mouse.get_pressed()[0]:
                     checkEquip(slot)
                 # Sell Item
-                elif not inFight and pygame.mouse.get_pressed()[2] and slot in player.inv and slot is not player.weapon and slot is not player.body and\
+                elif not inFight.show and pygame.mouse.get_pressed()[2] and slot in player.inv and slot is not player.weapon and slot is not player.body and\
                      slot is not player.lefthand and slot is not player.head and slot != None:
                         sellItem(slot)
             else: # in fight potion/equip mechanic
                 if pygame.mouse.get_pressed()[0] and slot in player.inv and slot is not player.weapon and slot is not player.body and\
                                                      slot is not player.lefthand and slot is not player.head and slot != None:
                     checkEquip(slot)
-                    inInv = False
+                    inInv.show = False
                     dmg_calc(slot)
-        elif inHosp:
+        elif inHosp.show:
             if slot != None:
                 itemValue(slot)
             if pygame.mouse.get_pressed()[0]:
@@ -1704,7 +1724,7 @@ def slotButton(slot,x,y,w,h):
                     textbox('Full inventory!',30,red,screenW/2,800)
                 else:
                     buyItem(slot)
-        elif inStore:
+        elif inStore.show:
             itemValue(slot)
             if pygame.mouse.get_pressed()[0]:
                 if player.numItemInv == player.numMaxItem:
@@ -1738,7 +1758,6 @@ def removeSkill(slot):
         pygame.display.update()
 
 def sellItem(slot):
-    global inSome
     want = True
     sell_price = round(slot.cost/2)
     while want:
@@ -1746,7 +1765,7 @@ def sellItem(slot):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quitGame()
-            if event.type == pygame.KEYDOWN:
+            elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
                     if isinstance(slot,Potion) and slot.num_held > 1:
                             slot.num_held -= 1
@@ -1810,7 +1829,7 @@ def buyItem(slot):
                 pygame.display.update()
 
 def itemValue(slot):
-    if inStore and not inInv and slot != None: # IN STORE DETAILS
+    if inStore.show and not inInv.show and slot != None: # IN STORE DETAILS
         textbox(slot.name,60,black,775,125)
         textbox('%s (%s)'%(slot.desc,slot.type),20,black,775,185)
         if isinstance(slot,Weapon):
@@ -1824,7 +1843,7 @@ def itemValue(slot):
             for index in range(len(slot.bdesc_list)):
                 textbox(slot.bdesc_list[index],25,black,780,275+y)
                 y += 35
-    elif inSkill or inLearnSkill:
+    elif inSkill.show or inLearnSkill.show:
             textbox(slot.name,75,black,800,100)
             textbox(slot.desc,30,black,800,175)
             textbox('Rank: %i/%i (%s)'%(slot.rank,slot.maxRank,slot.type),40,black,800,300)
@@ -1837,7 +1856,7 @@ def itemValue(slot):
             textbox(slot.effdesc,20,black,800,475)
             if len(slot.requiredesc) != 0:
                 textbox('Requirement(s):  (%s)'%slot.requiredesc,16,black,800,540)
-    elif inInv:
+    elif inInv.show:
         if isinstance(slot,Weapon):
             textbox('ATK: %i/MATK: %i Cost: $%i'%(slot.damage,slot.mag_damage,slot.cost),35,black,300,430)
         elif isinstance(slot,Armor):
@@ -1856,7 +1875,7 @@ def itemValue(slot):
                     for index in range(len(slot.bdesc_list)):
                         textbox(slot.bdesc_list[index],30,black,300,480+y)
                         y += 45
-    elif inHosp:
+    elif inHosp.show:
         if slot != None:
             textbox(slot.name,65,black,screenW/2,50)
             textbox('%s (%s)'%(slot.desc,slot.type),40,black,screenW/2,110)
@@ -1865,17 +1884,15 @@ def itemValue(slot):
 
 
 def leaveLearnSkill():
-    global inLearnSkill
-    inLearnSkill = False
-    if not inFight or inLearnSkill:
+    inLearnSkill.show = False
+    if not inFight.show or inLearnSkill.show:
         time.sleep(0.3)
 
 def learnedSkillsPage():
     time.sleep(0.2)
     player.statUpdate()
-    global inLearnSkill
-    inLearnSkill = True
-    while inLearnSkill:
+    inLearnSkill.show = True
+    while inLearnSkill.show:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quitGame()
@@ -1886,7 +1903,7 @@ def learnedSkillsPage():
         textbox('Learned Skills',60,black,280,50)
         if player.learned_skills[0] == None:
             textbox('Learn skills by ranking them up using SP!',50,black,screenW/2,screenH/2)
-        if not inFight or enemy.HP >= 0:
+        if not inFight.show or enemy.HP >= 0:
             textbox('SP: %i'%player.SP,50,black,905,630)
             textbox('Hover over a skill and right click to remove the skill',20,black,300,685)
             button('Leave',30,660,575,100,100,red,lightRed,leaveLearnSkill,None)
@@ -1899,16 +1916,15 @@ def learnedSkillsPage():
 def skillsPage():
     player.statUpdate()
     skillUpdate()
-    global inSkill
-    inSkill = True
+    inSkill.show = True
     pg_num = 0
-    while inSkill:
+    while inSkill.show:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quitGame()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_3:
-                    inSkill = False
+                    inSkill.show = False
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_a:
                         if pg_num - 1 >= 0:
@@ -1969,11 +1985,11 @@ def enemyAttack():
             elif status == st_curse:
                 curse_damage = status_calc(st_curse,player)
                 fight_shown_text.append(['You take %i curse damage'%curse_damage,lightRed])
-        addFightDetailText(fight_shown_text)
+        fightText.addText(fight_shown_text)
         pygame.display.update()
     else:
         fight_shown_text.append(["Enemy can't move!",lightYellow])
-        addFightDetailText(fight_shown_text)
+        fightText.addText(fight_shown_text)
         pygame.display.update()
 
 def doNone():
@@ -1989,7 +2005,7 @@ def fakeFight():
     button('Run',30,275,375,75,75,red,lightRed,doNone,None)
     screen.blit(player.img,(425,355))
     screen.blit(enemy.img, centerIMG(255,255,800,350))
-    textbox('Turn: %i'%(fight_turn),25,black,330,340)
+    textbox('Turn: %i'%(fightText.turn),25,black,330,340)
     showActivesAndStatus()
     status_bar()
 
@@ -2010,11 +2026,8 @@ def status_calc(status,victim):
     
 def dmg_calc(used_skill):
     leaveLearnSkill()
-    global fight_turn
-    global text_detail_pg_num
-    global inLearnSkill
-    fight_turn += 1
-    text_detail_pg_num = 1
+    fightText.turn += 1
+    fightText.pg_num = fightText.pages
     fight_shown_text = []
     success_run = None
     enemy.isPara = False
@@ -2068,8 +2081,8 @@ def dmg_calc(used_skill):
         fight_shown_text.append(['You have defeated the enemy!',brown])
     # refresh
     fakeFight()
-    addFightDetailText(fight_shown_text)
-    fightDetailText(text_detail_pg_num)
+    fightText.addText(fight_shown_text)
+    fightText.showText([27,27,28,32,37,45],350,0,25,50)
     pygame.display.update()
     time.sleep(1.1)
     # counter attack
@@ -2083,23 +2096,6 @@ def checkActiveDuration():
             skill.loseEffect()
             player.fight_actives.remove(skill)
 
-def addFightDetailText(aList):
-    global fight_detail_text_list
-    del fight_detail_text_list[0]
-    fight_detail_text_list.append([['',black],['',black],['',black],['',black],['',black],['',black]])
-    for text in aList:
-        del fight_detail_text_list[1][0]
-        fight_detail_text_list[1].append(text)
-    
-
-def fightDetailText(pg_num): # There are 2 pages with 6 textboxes
-    textbox(fight_detail_text_list[pg_num][0][0],27,fight_detail_text_list[pg_num][0][1],350,25)
-    textbox(fight_detail_text_list[pg_num][1][0],27,fight_detail_text_list[pg_num][1][1],350,75)
-    textbox(fight_detail_text_list[pg_num][2][0],28,fight_detail_text_list[pg_num][2][1],350,125)
-    textbox(fight_detail_text_list[pg_num][3][0],32,fight_detail_text_list[pg_num][3][1],350,175)
-    textbox(fight_detail_text_list[pg_num][4][0],37,fight_detail_text_list[pg_num][4][1],350,225)
-    textbox(fight_detail_text_list[pg_num][5][0],45,fight_detail_text_list[pg_num][5][1],350,275)#290
-
 def level_up_greet():
     screen.fill(yellow)
     textbox('You leveled up!',75,black,screenW/2,screenH/2)
@@ -2111,15 +2107,8 @@ def level_up_greet():
     time.sleep(1.75)
 
 def fight():
-    global inFight
     global enemy
-    global fight_detail_text_list
-    global fight_turn
-    global text_detail_pg_num
-    text_detail_pg_num = 1
-    fight_turn = 0
-    fight_detail_text_list = [[['',black],['',black],['',black],['',black],['',black],['',black]],\
-                              [['',black],['',black],['',black],['',black],['',black],['',black]]]
+    fightText.turn = 0
     player.statUpdate()
     skillUpdate()
     player.run_away = False
@@ -2155,9 +2144,9 @@ def fight():
                                            'game/music/bgm_fight4.mp3','game/music/bgm_fight5.mp3','game/music/bgm_fight6.mp3','game/music/bgm_fight7.mp3']))
     pygame.mixer.music.play(-1)
     ##############################
-    inFight = True
+    inFight.show = True
     time.sleep(0.5)
-    while inFight: 
+    while inFight.show: 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quitGame()
@@ -2167,12 +2156,12 @@ def fight():
                 elif event.key == pygame.K_2:
                     statsPage()
                 elif event.key == pygame.K_a:
-                    if text_detail_pg_num - 1 >= 0:
-                        text_detail_pg_num -= 1
+                    if fightText.pg_num - 1 >= 0:
+                        fightText.pg_num -= 1
                         pg_flip.play()
                 elif event.key == pygame.K_d:
-                    if text_detail_pg_num + 1 < 2:
-                        text_detail_pg_num += 1
+                    if fightText.pg_num + 1 < 2:
+                        fightText.pg_num += 1
                         pg_flip.play()
         if enemy.HP <= 0:
             player.cash += enemy.loot
@@ -2203,12 +2192,12 @@ def fight():
         button('Run',30,275,375,75,75,red,lightRed,dmg_calc,'run')
         screen.blit(player.img,(425,355))
         screen.blit(enemy.img, centerIMG(255,255,800,350))
-        textbox('Turn: %i'%(fight_turn),25,black,330,340)
-        if text_detail_pg_num - 1 >= 0:
+        textbox('Turn: %i'%(fightText.turn),25,black,330,340)
+        if fightText.pg_num - 1 >= 0:
             screen.blit(small_arrow_left,centerIMG(30,30,60,150))
-        if text_detail_pg_num + 1 < 2:
+        if fightText.pg_num + 1 < 2:
             screen.blit(small_arrow_right,centerIMG(30,30,600,150))
-        fightDetailText(text_detail_pg_num)
+        fightText.showText([27,27,28,32,37,45],350,0,25,50)
         showActivesAndStatus()
         status_bar()
         ###
@@ -2235,13 +2224,13 @@ def showActivesAndStatus():
     x = 0
     for status in enemy.fight_status:
         screen.blit(status,centerIMG(80,80,700+x,650))
-        x += 100   
+        x += 100
 
 
 def fightAgain():
     for aSkill in player.fight_actives:
         Active.loseEffect(aSkill)
-    while inFight:
+    while inFight.show:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quitGame()
@@ -2253,8 +2242,7 @@ def fightAgain():
         pygame.display.update()
 
 def leaveFight():
-    global inFight
-    inFight = False
+    inFight.show = False
     for aSkill in player.fight_actives:
         Active.loseEffect(aSkill)
     player.X = 800
@@ -2269,13 +2257,12 @@ def runChance():
     return success_run
 
 def shop():
-    global inStore
-    inStore = True
+    inStore.show = True
 ##    pygame.mixer.music.load('bgm_shop.ogg')
 ##    pygame.mixer.music.play(-1)
     pg_num = 1
     ##
-    while inStore:
+    while inStore.show:
         screen.fill(lime)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -2284,7 +2271,7 @@ def shop():
                 if event.key == pygame.K_e:
 ##                    pygame.mixer.music.load('bgm_home.mp3')
 ##                    pygame.mixer.music.play(-1)
-                    inStore = False
+                    inStore.show = False
                 elif event.key == pygame.K_a:
                     if pg_num - 1 >= 1:
                         pg_num -= 1
@@ -2325,9 +2312,8 @@ def matrixSlot(column,row,what,x,y,xdis,ydis):
         y_start = 0
 
 def inventory():
-    global inInv
-    inInv = True
-    while inInv:
+    inInv.show = True
+    while inInv.show:
         player.statUpdate()
         screen.fill(brown)
         for event in pygame.event.get():
@@ -2335,8 +2321,8 @@ def inventory():
                 quitGame()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_1:
-                    inInv = False
-                if event.key == pygame.K_3:
+                    inInv.show = False
+                if event.key == pygame.K_2:
                     statsPage()
         ### Inventory slots ###
         matrixSlot(3,5,player.inv,625,45,125,125)
@@ -2351,16 +2337,15 @@ def inventory():
         pygame.display.update()
 
 def hospital():
-    global inHosp
-    inHosp = True
-    while inHosp:
+    inHosp.show = True
+    while inHosp.show:
         screen.fill(orange)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quitGame()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_e:
-                    inHosp = False
+                    inHosp.show = False
         textbox('Cash: %i'%player.cash,40,yellow,140,175)
         matrixSlot(6,3,hospital_pots,150,300,125,125)
         textbox('(Potions are usable in battle)',20,black,300,675)

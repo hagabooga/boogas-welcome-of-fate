@@ -110,9 +110,9 @@ class Player(object):
         self.head = china_hat
         self.body = shirt_jeans
         # General
-        self.LV = 1
+        self.LV = 20
         self.AP = 5
-        self.SP = 1
+        self.SP = 50
         self.exp = 0
         self.max_exp = 12
         self.cash = 0
@@ -301,7 +301,8 @@ class Action:
 ##            total = self.damage
 ##        ################################
 ##        ### Sonic Hit Chance factor ####
-##        elif self == player.skill_sonic:
+
+             # if deal more than current MP##        elif self == player.skill_sonic:
 ##            dodge_rate = round(dodge_rate*0.43 - 1)
 ##            total = self.damage
 ##        ###############################
@@ -425,21 +426,21 @@ class Active(Skill):
     def effect(used_skill):
         player.fight_actives.append(used_skill)
         if used_skill == mana_gaurd:
-            mana_gaurd.setTurnEnd(fight_turn,5)
-            mana_gaurd.setCooldownEnd(fight_turn,mana_gaurd.cooldown)
+            mana_gaurd.setTurnEnd(fightText.turn,5)
+            mana_gaurd.setCooldownEnd(fightText.turn,mana_gaurd.cooldown)
         elif used_skill == restore:
             player.restoreHP(restore.hp)
             player.bonusLuck += restore.bonus_stat
             player.bonusHit += restore.bonus_stat
             player.bonusCrit += restore.bonus_stat
-            restore.setTurnEnd(fight_turn,3)
-            restore.setCooldownEnd(fight_turn,restore.cooldown)
+            restore.setTurnEnd(fightText.turn,3)
+            restore.setCooldownEnd(fightText.turn,restore.cooldown)
         elif used_skill == barrier:
             player.shield_hp = barrier.shield
-            barrier.setTurnEnd(fight_turn,3)
-            barrier.setCooldownEnd(fight_turn,barrier.cooldown)
+            barrier.setTurnEnd(fightText.turn,3)
+            barrier.setCooldownEnd(fightText.turn,barrier.cooldown)
         elif used_skill == meditate:
-            meditate.setCooldownEnd(fight_turn,meditate.cooldown)
+            meditate.setCooldownEnd(fightText.turn,meditate.cooldown)
 
     def loseEffect(self):
         if self == restore:
@@ -1215,7 +1216,6 @@ class switchTextbox: #each page has x amount of columns of textboxes
                 startText.append(['',black])
             self.text_list.append(startText)
             startText = []
-        print(self.text_list)
         self.column = column
         self.pg_num = 1
         self.pages = pages - 1
@@ -1228,7 +1228,13 @@ class switchTextbox: #each page has x amount of columns of textboxes
         for text in newTextList:
             del self.text_list[self.pages][0]
             self.text_list[self.pages].append(text)
-    def showText(self,textSizeList,x,y,x_dis,y_dis):
+    def reset(self):
+        startText = []
+        for page in range(self.pages+1):
+            for col in range(self.column):
+                startText.append(['',black])
+            self.addText(startText)
+    def showText(self,textSizeList,x,x_dis,y,y_dis):
         xdis = 0
         ydis = 0
         for col in range(self.column):
@@ -1236,12 +1242,16 @@ class switchTextbox: #each page has x amount of columns of textboxes
             x += x_dis
             y += y_dis
 
-fightText = switchTextbox(2,6)
+fightText = switchTextbox(2,6) # used in fight
 
 player = 'some Mage/Rouge/Warrior()'
 enemy = 'some Enemy()'
 name = ''
 
+
+def doNone():
+    None
+    
 # place center img
 def centerIMG(imgX, imgY, x, y):
     center = ((x - imgX / 2), (y - imgY / 2))
@@ -1253,7 +1263,7 @@ def textObj(text, font, color):
     return textSurface, textSurface.get_rect()
 
 def textbox(msg, size, color, x, y):  # font for game is 'comicsansms'
-    fontSize = pygame.font.SysFont('segoeui', size)
+    fontSize = pygame.font.Font('game/font/segoeuil.ttf',size)#SysFont('segoeui', size)
     textSurf, textRect = textObj(msg, fontSize, color)
     textRect.center = ((x, y))
     screen.blit(textSurf, textRect)
@@ -1581,7 +1591,7 @@ def checkEquip(slot):
         player.head = china_hat
         wear.play()
     # use potion
-    if isinstance(slot,Potion) and not inFight:
+    if isinstance(slot,Potion) and not inFight.show:
         # all pot activation effects
         Potion.activate_eff(slot)
         time.sleep(0.3)
@@ -1684,10 +1694,10 @@ def slotButton(slot,x,y,w,h):
                     itemValue(slot)
                     if pygame.mouse.get_pressed()[0]:
                         if hasattr(slot,'cooldownEnd'):
-                            if slot.cooldownEnd <= fight_turn:
+                            if slot.cooldownEnd <= fightText.turn:
                                 del slot.cooldownEnd
                             else:
-                                textbox('On cooldown! %i Turns Left'%(slot.cooldownEnd - fight_turn),30,blue,800,235)
+                                textbox('On cooldown! %i Turns Left'%(slot.cooldownEnd - fightText.turn),30,blue,800,235)
                         elif player.MP - slot.mana < 0: # check if player has enough mana
                             textbox('Not enough MP!',50,blue,800,235)
                         else:
@@ -1992,9 +2002,6 @@ def enemyAttack():
         fightText.addText(fight_shown_text)
         pygame.display.update()
 
-def doNone():
-    None
-
 def fakeFight():
     screen.fill(white)
     textbox('%s'%enemy.name,40,black,800,175)
@@ -2035,13 +2042,13 @@ def dmg_calc(used_skill):
         fight_shown_text.append(['You are trying to run away...',black])
         success_run = runChance()
         if not success_run:
+            fight_shown_text = []
             fight_shown_text.append(['You failed to run away!',blue])
-            addFightDetailText(fight_shown_text)
+            fightText.addText(fight_shown_text)
         else:
             player.run_away = True
     elif isinstance(used_skill,Armor) or isinstance(used_skill,Weapon): # equip an item
         fight_shown_text.append(['You equipped %s'%used_skill.name,black])
-        
     elif isinstance(used_skill,Magical) or isinstance(used_skill,Physical): # Skill
         fight_shown_text.append(['You use %s'%used_skill.name,black])
         damage = Action.skillAttack(player,enemy,used_skill)
@@ -2092,7 +2099,7 @@ def dmg_calc(used_skill):
 
 def checkActiveDuration():
     for skill in player.fight_actives:
-        if hasattr(skill,'turnEnd') and fight_turn == skill.turnEnd:
+        if hasattr(skill,'turnEnd') and fightText.turn == skill.turnEnd:
             skill.loseEffect()
             player.fight_actives.remove(skill)
 
@@ -2109,6 +2116,7 @@ def level_up_greet():
 def fight():
     global enemy
     fightText.turn = 0
+    fightText.reset()
     player.statUpdate()
     skillUpdate()
     player.run_away = False
@@ -2252,7 +2260,7 @@ def leaveFight():
 
 def runChance():
     chance = 100
-    chance -= round(enemy.HP/25)  + enemy.damage*3 - player.LV*35 - player.damage*4 - player.mag_damage*4
+    chance -= round(enemy.HP/15)  + enemy.damage*3 - player.LV*75 - player.damage*4 - player.mag_damage*4
     success_run = chance >= random.choice(range(101))
     return success_run
 

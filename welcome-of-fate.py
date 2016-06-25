@@ -110,9 +110,9 @@ class Player(object):
         self.head = china_hat
         self.body = shirt_jeans
         # General
-        self.LV = 20
+        self.LV = 1
         self.AP = 5
-        self.SP = 50
+        self.SP = 1
         self.exp = 0
         self.max_exp = 12
         self.cash = 0

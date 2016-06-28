@@ -1207,7 +1207,7 @@ inHosp = Page()
 inSkill = Page()
 inLearnSkill = Page()
 
-class switchTextbox: #each page has x amount of columns of textboxes
+class switchTextbox: # each page has x amount of columns of textboxes
     def __init__(self,pages,column):
         self.text_list = [] # each row has ['text',color]
         startText = []
@@ -1262,8 +1262,8 @@ def textObj(text, font, color):
     textSurface = font.render(text, True, color)
     return textSurface, textSurface.get_rect()
 
-def textbox(msg, size, color, x, y):  # font for game is 'comicsansms'
-    fontSize = pygame.font.Font('game/font/segoeuil.ttf',size)#SysFont('segoeui', size)
+def textbox(msg, size, color, x, y):
+    fontSize = pygame.font.Font('game/font/segoeuil.ttf',size)
     textSurf, textRect = textObj(msg, fontSize, color)
     textRect.center = ((x, y))
     screen.blit(textSurf, textRect)
@@ -1321,6 +1321,7 @@ def intro():
     global name
     # music
     pygame.mixer.music.play(-1)
+    enter_pressed = False
     inSome.show = True
     while inSome.show:
         for event in pygame.event.get():
@@ -1329,12 +1330,18 @@ def intro():
                 if event.unicode.isalpha():
                     if len(name) < 11:
                         name += event.unicode
-                elif event.key == pygame.K_BACKSPACE:
-                   name = name[:-1]
-                elif event.key == pygame.K_SPACE and not len(name) == 0 and len(name) < 11:
-                    name += " "
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_BACKSPACE:
+                       name = name[:-1]
+                    elif event.key == pygame.K_SPACE and not len(name) == 0 and len(name) < 11:
+                        name += " "
+                    elif event.key == pygame.K_RETURN:
+                        enter_pressed = True
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_RETURN:
+                    enter_pressed = False
                 ### user input for name
-            if event.type == pygame.QUIT:
+            elif event.type == pygame.QUIT:
                 quitGame()
         screen.fill(white)
         # Show username input
@@ -1344,7 +1351,10 @@ def intro():
         # ask for name
         textbox('Enter your name: ',50,red,250,420)
         # Start buttion
-        button('Start',40,250,550,150,100,green,lightGreen,checkLenName,name)
+        if enter_pressed:
+            checkLenName(name)
+        else:
+            button('Start',40,250,550,150,100,green,lightGreen,checkLenName,name)
         # Quit button
         button('Quit',40,650,550,150,100,red,lightRed,quitGame,None)
         pygame.display.update()
@@ -2168,10 +2178,12 @@ def fight():
                         fightText.pg_num -= 1
                         pg_flip.play()
                 elif event.key == pygame.K_d:
-                    if fightText.pg_num + 1 < 2:
+                    if fightText.pg_num + 1 < fightText.pages:
                         fightText.pg_num += 1
                         pg_flip.play()
-        if enemy.HP <= 0:
+        if player.run_away:
+            leaveFight()
+        elif enemy.HP <= 0:
             player.cash += enemy.loot
             player.exp += enemy.exp
             if corpse_drain.bonus_chance >= random.choice(range(101)):
@@ -2186,9 +2198,7 @@ def fight():
                 fightAgain()
             else:
                 fightAgain()
-        if player.run_away:
-            leaveFight()
-        if player.HP <= 0:
+        elif player.HP <= 0:
             gameover()
         # refresh
         screen.fill(white)
@@ -2416,7 +2426,7 @@ def game_loop():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_p:
                     pygame.display.toggle_fullscreen()
-                if event.key == pygame.K_a:
+                elif event.key == pygame.K_a:
                     player.img = rotate_img(player.direction,2,player.img)
                     player.direction = 2
                     player.Xchange = -5

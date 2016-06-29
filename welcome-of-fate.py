@@ -1,3 +1,5 @@
+from colors import *
+
 import pygame
 import random
 import math
@@ -10,31 +12,7 @@ screenH = 768
 screen = pygame.display.set_mode((screenW,screenH))
 clock = pygame.time.Clock()
 
-#colors
-black = (0,0,0)
-white = (255,255,255)
-yellow = (250,250,0)
-red = (255,0,0)
-green = (0,255,0)
-blue = (0,0,255)
-cyan = (71,223,198)
-grey = (215,215,215)
-orange = (255,128,0)
-brown = (200,120,90)
-lime = (136,255,0)
-lightYellow = (225,225,0)
-lighterYellow = (210,210,0)
-lightCyan = (77,242,209)
-lightRed = (200,0,0)
-lighterRed = (180,0,0)
-lightGreen = (0,210,0)
-lighterGreen = (0,190,0)
-lightBlue = (0,0,215)
-lighterBlue = (0,0,190)
-lightOrange = (255,153,51)
 
-randColor = (random.choice(range(50,175)),random.choice(range(50,175)),random.choice(range(50,175)))
-randColor2 = (random.choice(range(50,175)),random.choice(range(50,175)),random.choice(range(50,175)))
 
 # Music/sounds
 def weapon_atk_sound():
@@ -105,10 +83,19 @@ class Player(object):
         self.bonusDodge = 0
         self.bonusCrit = 0
         # Inventory
-        self.weapon = fists
-        self.lefthand = fap
-        self.head = china_hat
-        self.body = shirt_jeans
+        self.fists = Axe('Fists','basic/fists.png','Bare hands (cannot unequip)',1,1,\
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        self.fap = L_hand('Left Hand','basic/start_left.png','Fap Fap Fap (cannot unequip)',\
+                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        self.china_hat = Head('China Hat','basic/start_head.png','Offers no protection (cannot unequip)',\
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        self.shirt_jeans = Body('Shirt and Jeans','basic/start_body.png','Offers no protection (cannot unequip)',\
+                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        givebdesc([self.fists,self.fap,self.china_hat,self.shirt_jeans])
+        self.weapon = self.fists
+        self.lefthand = self.fap
+        self.head = self.china_hat
+        self.body = self.shirt_jeans
         # General
         self.LV = 1
         self.AP = 5
@@ -998,8 +985,6 @@ shop_pg = [shop_alpha_mage1]
 
 
 # Starting Weapons
-fists = Axe('Fists','basic/fists.png','Bare hands (cannot unequip)',1,1,\
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 basic_wand = Wand('Basic Wand','basic/bas_wand.png','A basic wand',2,6,\
                     0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 basic_dag = Dagger('Basic Dagger','basic/bas_dag.png','A basic dagger',4,4,\
@@ -1007,17 +992,10 @@ basic_dag = Dagger('Basic Dagger','basic/bas_dag.png','A basic dagger',4,4,\
 basic_sword = Sword('Basic Sword','basic/bas_sword.png','A basic sword',6,2,\
                      2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 # Strating armors
-fap = L_hand('Left Hand','basic/start_left.png','Fap Fap Fap (cannot unequip)',\
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-china_hat = Head('China Hat','basic/start_head.png','Offers no protection (cannot unequip)',\
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-shirt_jeans = Body('Shirt and Jeans','basic/start_body.png','Offers no protection (cannot unequip)',\
-                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-
 no_left = L_hand('Cannot Equip','basic/no.png','Two-handed weapon equipped',\
                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-start_items = [fap,china_hat,shirt_jeans,fists,basic_wand,basic_dag,basic_sword,no_left]
+start_items = [basic_wand,basic_dag,basic_sword,no_left]
 givebdesc(start_items)
 
 
@@ -1209,7 +1187,7 @@ inLearnSkill = Page()
 
 class switchTextbox: # each page has x amount of columns of textboxes
     def __init__(self,pages,column):
-        self.text_list = [] # each row has ['text',color]
+        self.text_list = [] # each row has ['aText',aColor]
         startText = []
         for page in range(pages):
             for col in range(column):
@@ -1244,7 +1222,6 @@ class switchTextbox: # each page has x amount of columns of textboxes
 
 fightText = switchTextbox(2,6) # used in fight
 
-player = 'some Mage/Rouge/Warrior()'
 enemy = 'some Enemy()'
 name = ''
 
@@ -1291,6 +1268,20 @@ def button(msg, msgSize, x, y, w, h, color, onColor, action, parameter):
         pygame.draw.rect(screen, onColor, (x, y, w, h))
     textbox(msg, msgSize, black, x + w / 2, y + h / 2)
 
+def boolButton(msg, msgSize, x, y, w, h, color, onColor):
+    mouse = pygame.mouse.get_pos()
+    click = pygame.mouse.get_pressed()
+    if x + w > mouse[0] > x and y + h > mouse[1] > y:
+        pygame.draw.rect(screen, color, (x, y, w, h))
+        textbox(msg, msgSize, black, x + w / 2, y + h / 2)
+        if click[0] == 1:
+            return True
+    else:
+        pygame.draw.rect(screen, onColor, (x, y, w, h))
+        textbox(msg, msgSize, black, x + w / 2, y + h / 2)
+        return False
+
+
 def quitGame():
     pygame.quit()
     quit()
@@ -1314,13 +1305,28 @@ def gameover():
 def status_bar():
     if player.shield_hp > 0 and inFight.show and not inInv.show and not inSome.show and not inSkill.show:
         textbox('Shield: %i'%player.shield_hp,50,orange,500,650)
-    textbox(player.name,30,black,80,725)
-    textbox(('LV %i     HP  %i / %i   MP  %i / %i' %(player.LV,player.HP,player.maxHP,player.MP,player.maxMP)),40,black,600,725)
+    textbox(player.name,25,black,80+(len(player.name)*5),725)
+    textbox(('LV %i     HP  %i / %i   MP  %i / %i' %(player.LV,player.HP,player.maxHP,player.MP,player.maxMP)),40,black,610,725)
 
 def intro():
-    global name
     # music
     pygame.mixer.music.play(-1)
+    inSome.show = True
+    while inSome.show:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quitGame()
+        screen.fill(white)
+        # Title
+        textbox('''Booga's Welcome of Fate''',80,blue,screenW/2,200)
+        # Start buttion
+        button('Start',60,175,375,250,250,green,lightGreen,instructions,None)
+        # Quit button
+        button('Quit',60,600,375,250,250,red,lightRed,quitGame,None)
+        pygame.display.update()
+
+def enter_name():
+    name = ''
     enter_pressed = False
     inSome.show = True
     while inSome.show:
@@ -1328,12 +1334,12 @@ def intro():
             if event.type == pygame.KEYDOWN:
                 ### user input for name
                 if event.unicode.isalpha():
-                    if len(name) < 11:
+                    if len(name) < 12:
                         name += event.unicode
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_BACKSPACE:
                        name = name[:-1]
-                    elif event.key == pygame.K_SPACE and not len(name) == 0 and len(name) < 11:
+                    elif event.key == pygame.K_SPACE and not len(name) == 0 and len(name) < 12:
                         name += " "
                     elif event.key == pygame.K_RETURN:
                         enter_pressed = True
@@ -1345,25 +1351,17 @@ def intro():
                 quitGame()
         screen.fill(white)
         # Show username input
-        textbox(name,50,randColor,650,420)
-        # Title
-        textbox('''Booga's Welcome of Fate''',80,blue,screenW/2,200)
+        textbox(name,50,purple,655+(len(name)*4),300)
         # ask for name
-        textbox('Enter your name: ',50,red,250,420)
-        # Start buttion
+        textbox('Enter your name: ',50,blue,250,300)
+        textbox('Press Enter when done',60,black,screenW/2,535)
         if enter_pressed:
-            checkLenName(name)
-        else:
-            button('Start',40,250,550,150,100,green,lightGreen,checkLenName,name)
-        # Quit button
-        button('Quit',40,650,550,150,100,red,lightRed,quitGame,None)
+            if len(name.strip()) == 0:
+                textbox('Please enter a name',60,red,screenW/2,425)
+            else:
+                player.name = name
+                inSome.leave()
         pygame.display.update()
-
-def checkLenName(name):
-    if len(name.strip()) == 0:
-        textbox('Please enter a name',40,black,screenW/2,500)
-    else:
-        instructions()
 
 def instructions():
     timer = 0
@@ -1438,28 +1436,19 @@ def job_select():
                 quitGame()
         screen.fill(white)
         textbox('Select Your Job',100,black,screenW/2,100)
-        button('Mage',40,85,275,250,250,blue,lightBlue,selected_job,'Mage')
-        button('Rouge',40,385,275,250,250,green,lightGreen,selected_job,'Rouge')
-        button('Warrior',40,685,275,250,250,red,lightRed,selected_job,'Warrior')
+        if boolButton('Mage',40,85,275,250,250,blue,lightBlue):
+            return Mage()
+        if boolButton('Rouge',40,385,275,250,250,green,lightGreen):
+            textbox('Available Soon!',60,black,screenW/2,200)
+            #return Rouge()
+        if boolButton('Warrior',40,685,275,250,250,red,lightRed):
+                textbox('Available Soon!',60,black,screenW/2,200)
+            #return Warrior()
         textbox('Mage: Excels with magic, high MP and Magical DMG but low HP, armor, and physical dmg',23,lightBlue,screenW/2,600)
         textbox('Rouge: Fast and sharp, high crit and dodge but low HP and defense',23,lightGreen,screenW/2,650)
         textbox('Warrior: Strong and sturdy, high physical dmg and armor but low hit chance and weak to magic',23,lightRed,screenW/2,700)
         pygame.display.update()
 
-def selected_job(selected_job):
-    global player
-    global name
-    if selected_job == 'Mage':
-        player = Mage()
-        player.name = name
-        inSome.show = False
-        del name
-    elif selected_job == 'Warrior':
-        textbox('Available soon!',80,black,screenW/2,200)
-        #player = Warrior()
-    else:
-        textbox('Available soon!',80,black,screenW/2,200)
-        #player = Rouge()
 
 
 def statsPage():
@@ -1497,17 +1486,17 @@ def statsPage():
 def checkEquip(slot):
     if isinstance(slot,Weapon) and slot is not player.weapon and slot != player.weapon: # and player.weapon == fists
         if isinstance(slot,Staff): # two handed weapon
-            if player.lefthand != fap:
+            if player.lefthand != player.fap:
                 player.lefthand.noBonus()
                 player.inv[player.numItemInv] = player.lefthand
                 player.numItemInv += 1
-            player.lefthand = no_left
+            player.lefthand = player.no_left
         else:
             if player.lefthand == no_left:
-                player.lefthand = fap
+                player.lefthand = player.fap
         if slot.weapon_requirement():
             saved_item = None
-            if player.weapon != fists and slot != player.weapon: # if has weapon equipped already
+            if player.weapon != player.fists and slot != player.weapon: # if has weapon equipped already
                 saved_item = player.weapon
                 player.weapon.noBonus()
             player.weapon = slot
@@ -1523,18 +1512,18 @@ def checkEquip(slot):
         else:
             textbox('Requirements not met!',50,black,500,500)
     # remove weapon
-    elif slot is player.weapon and player.weapon != fists and player.numItemInv < player.numMaxItem:
+    elif slot is player.weapon and player.weapon != player.fists and player.numItemInv < player.numMaxItem:
         if isinstance(slot,Staff):
-            player.lefthand = fap
+            player.lefthand = player.fap
         player.weapon.noBonus()
         player.inv[player.numItemInv] = player.weapon
         player.numItemInv += 1
-        player.weapon = fists
+        player.weapon = player.fists
         equip_sound.play()
     # put body on
     elif isinstance(slot,Body) and slot is not player.body: #and player.body == shirt_jeans
         saved_item = None
-        if player.body != shirt_jeans and slot != player.body: # if has weapon equipped already
+        if player.body != player.shirt_jeans and slot != player.body: # if has weapon equipped already
             saved_item = player.body
             player.body.noBonus()
         player.body = slot
@@ -1548,11 +1537,11 @@ def checkEquip(slot):
         wear.play()
         time.sleep(0.3)
     # remove body
-    elif slot == player.body and player.body != shirt_jeans and slot not in player.inv and player.numItemInv < player.numMaxItem:
+    elif slot == player.body and player.body != player.shirt_jeans and slot not in player.inv and player.numItemInv < player.numMaxItem:
         player.body.noBonus()
         player.inv[player.numItemInv] = player.body
         player.numItemInv += 1
-        player.body = shirt_jeans
+        player.body = player.shirt_jeans
         wear.play()
     # put on l_hand
     elif isinstance(slot,L_hand) and slot is not player.lefthand and player.lefthand != no_left:
@@ -1571,16 +1560,16 @@ def checkEquip(slot):
         wear.play()
         time.sleep(0.3)
     #remove l_hand
-    elif slot == player.lefthand and player.lefthand != fap and player.lefthand != no_left and slot not in player.inv and player.numItemInv < player.numMaxItem:
+    elif slot == player.lefthand and player.lefthand != player.fap and player.lefthand != no_left and slot not in player.inv and player.numItemInv < player.numMaxItem:
         player.lefthand.noBonus()
         player.inv[player.numItemInv] = player.lefthand
         player.numItemInv += 1
-        player.lefthand = fap
+        player.lefthand = player.fap
         wear.play()
     # put on hat
     elif isinstance(slot,Head) and slot is not player.head:
         saved_item = None
-        if player.head != china_hat and slot != player.head: # if has weapon equipped already
+        if player.head != player.china_hat and slot != player.head: # if has weapon equipped already
             saved_item = player.head
             player.head.noBonus()
         player.head = slot
@@ -1594,11 +1583,11 @@ def checkEquip(slot):
         wear.play()
         time.sleep(0.3)
     # remove on hat
-    elif slot == player.head and player.head != china_hat and slot not in player.inv and player.numItemInv < player.numMaxItem:
+    elif slot == player.head and player.head != player.china_hat and slot not in player.inv and player.numItemInv < player.numMaxItem:
         player.head.noBonus()
         player.inv[player.numItemInv] = player.head
         player.numItemInv += 1
-        player.head = china_hat
+        player.head = player.china_hat
         wear.play()
     # use potion
     if isinstance(slot,Potion) and not inFight.show:
@@ -1618,8 +1607,6 @@ def trimExtraHPMP():
 def slotButton(slot,x,y,w,h):
     mouse = pygame.mouse.get_pos()
     click = pygame.mouse.get_pressed()
-##    player.skillUpdate()
-    #print(click) (left click,scroll click, right click)
     if inSkill.show or inLearnSkill.show: # skill page shows if requirement is met
         if slot != None:
             if slot.skill_requirement():
@@ -1633,7 +1620,7 @@ def slotButton(slot,x,y,w,h):
                 else:
                     pygame.draw.rect(screen, brown, (x,y,w,h))
     elif inFight.show and not inInv.show: # some reason when using skill the boxes show up so i use this to not show boxes after using skill (?????????????????)
-        # i know why the boxes show up its bcuz enemy attack overlaps screen and then closes :(
+        # i know why the boxes show up its bcuz enemy attack overlaps screen and then closes :(, must put enemy attack in the (fight() while loop)
         if slot != None:
             if x+w > mouse[0] > x and y+h > mouse[1] > y:  # show box and highlight when mouse hovers over
                 pygame.draw.rect(screen, green, (x,y,w,h))
@@ -2400,8 +2387,8 @@ def game_loop():
     # player coordinates
     player.X = 500
     player.Y = 600
-    player.W = 90
-    player.H = 90
+    player.W = player.img.get_rect()[2]
+    player.H = player.img.get_rect()[3]
     player.Xchange = 0
     player.Ychange = 0
     player.direction = 0
@@ -2449,6 +2436,7 @@ def game_loop():
                 elif event.key == pygame.K_3:
                     skillsPage()
                 elif event.key == pygame.K_e:
+                    # Pretty sure all boundaries for player are broken now, need to fix
                     if (player.X + 30 >= 470 and player.X <= 576) and (player.Y+30 >= 485 and player.Y <= 556):
                         hospital()
                     elif (player.X + 30 >= 87 and player.X <= 215) and (player.Y+30 >= 132 and player.Y <= 265):
@@ -2483,7 +2471,8 @@ def game_loop():
 
 # Main
 intro()
-job_select()
+player = job_select()
+enter_name()
 stats()
 game_loop()
 pygame.quit()

@@ -1490,7 +1490,7 @@ def checkEquip(slot):
                 player.lefthand.noBonus()
                 player.inv[player.numItemInv] = player.lefthand
                 player.numItemInv += 1
-            player.lefthand = player.no_left
+            player.lefthand =no_left
         else:
             if player.lefthand == no_left:
                 player.lefthand = player.fap
@@ -1546,7 +1546,7 @@ def checkEquip(slot):
     # put on l_hand
     elif isinstance(slot,L_hand) and slot is not player.lefthand and player.lefthand != no_left:
         saved_item = None
-        if player.lefthand != fap and slot != player.lefthand: # if has weapon equipped already
+        if player.lefthand != player.fap and slot != player.lefthand: # if has weapon equipped already
             saved_item = player.lefthand
             player.lefthand.noBonus()
         player.lefthand = slot
@@ -2395,7 +2395,7 @@ def game_loop():
     # restore HP/MP upon starting and give some starting cash
     player.healFullHP()
     player.healFullMP()
-    player.cash = 125
+    player.cash = 1000000
     play = True
     pygame.mixer.music.load('game/music/bgm_home.mp3')
     pygame.mixer.music.play(-1)

@@ -1,6 +1,8 @@
-from colors import *
-
 import pygame
+from colors import *
+from sounds import *
+from images import *
+from class_items import *
 import random
 import math
 import time
@@ -11,33 +13,6 @@ screenW = 1024
 screenH = 768
 screen = pygame.display.set_mode((screenW,screenH))
 clock = pygame.time.Clock()
-
-
-
-# Music/sounds
-def weapon_atk_sound():
-    atk_sound = pygame.mixer.Sound(random.choice(['game/sounds/atk1.wav','game/sounds/atk2.wav','game/sounds/atk3.wav',\
-                                                  'game/sounds/atk4.wav','game/sounds/atk5.wav','game/sounds/atk6.wav','game/sounds/atk7.wav']))
-    return atk_sound
-pygame.mixer.music.load('game/music/bgm_intro.mp3')
-heal = pygame.mixer.Sound('game/sounds/heal.wav')
-wear = pygame.mixer.Sound('game/sounds/wear.wav')
-buySound = pygame.mixer.Sound('game/sounds/buy.wav')
-potSound = pygame.mixer.Sound('game/sounds/pheal.wav')
-rank_up = pygame.mixer.Sound('game/sounds/rank_up.wav')
-pg_flip = pygame.mixer.Sound('game/sounds/page_flip.wav')
-crit = pygame.mixer.Sound('game/sounds/crit.wav')
-select = pygame.mixer.Sound('game/sounds/select.wav')
-equip_sound = pygame.mixer.Sound('game/sounds/atk4.wav')
-#congrats = pygame.mixer.Sound('
-
-# Pictures
-small_arrow_left = pygame.image.load('game/general/small_arrow_left.png')
-small_arrow_right = pygame.image.load('game/general/small_arrow_right.png')
-st_burn = pygame.image.load('game/status/st_burn.png')
-st_para = pygame.image.load('game/status/st_para.png')
-st_bleed = pygame.image.load('game/status/st_bleed.png')
-st_curse = pygame.image.load('game/status/st_curse.png')
 
 class Player(object):
     def __init__(self):
@@ -101,7 +76,7 @@ class Player(object):
         self.AP = 5
         self.SP = 1
         self.exp = 0
-        self.max_exp = 12
+        self.max_exp = 0
         self.cash = 0
         self.learned_skills = []
         self.fight_actives = []
@@ -176,12 +151,38 @@ class Player(object):
             self.MP = self.maxMP
         else:
             self.MP += amount
-    def lose(self, what, amount):
-        what -= damage
-    def gain(self, what, amount):
-        what += amount
-
-    
+    def addItemBonus(self,anItem):
+        self.bonusStren += anItem.bonusStren
+        self.bonusIntel += anItem.bonusIntel
+        self.bonusAgi += anItem.bonusAgi
+        self.bonusLuck += anItem.bonusLuck
+        self.bonusMaxHP += anItem.bonusMaxHP
+        self.bonusMaxMP += anItem.bonusMaxMP
+        self.bonusPdmg += anItem.bonusPdmg
+        self.bonusMdmg += anItem.bonusMdmg
+        self.bonusArmor += anItem.bonusArmor
+        self.bonusMag_armor += anItem.bonusMag_armor
+        self.bonusHit += anItem.bonusHit
+        self.bonusDodge += anItem.bonusDodge
+        self.bonusCrit += anItem.bonusCrit
+    def loseItemBonus(self,anItem):
+        self.bonusStren -= anItem.bonusStren
+        self.bonusIntel -= anItem.bonusIntel
+        self.bonusAgi -= anItem.bonusAgi
+        self.bonusLuck -= anItem.bonusLuck
+        self.bonusMaxHP -= anItem.bonusMaxHP
+        self.bonusMaxMP -= anItem.bonusMaxMP
+        self.bonusPdmg -= anItem.bonusPdmg
+        self.bonusMdmg -= anItem.bonusMdmg
+        self.bonusArmor -= anItem.bonusArmor
+        self.bonusMag_armor -= anItem.bonusMag_armor
+        self.bonusHit -= anItem.bonusHit
+        self.bonusDodge -= anItem.bonusDodge
+        self.bonusCrit -= anItem.bonusCrit
+##    def lose(self, what, amount):
+##        what -= damage
+##    def gain(self, what, amount):
+##        what += amount
     def resetStat(self, aBonusStat): # the bonus stat = 0 makes the stat reset
         self.aBonusStat = 0
     def resetStatAll(self):
@@ -220,7 +221,6 @@ class Player(object):
             self.HP = 1
             self.maxHP = 1
             self.stren = 1
-
 
 class Action:
     def skillAttack(user,victim,used_skill):
@@ -293,7 +293,7 @@ class Action:
 ##            dodge_rate = round(dodge_rate*0.43 - 1)
 ##            total = self.damage
 ##        ###############################
-##        ### Sweep Damage Bonus ########
+##        ### Sweep Damage Bonus ########a = 
 ##        elif self == player.skill_sweep:
 ##            bonus = 0
 ##            time = 0
@@ -624,211 +624,107 @@ def skillUpdate():
 ##sweep = Skill()
 
     
-class Item(object):
-    def __init__(self,name,img,desc,\
-                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost):
-        self.name = name
-        self.cost = cost
-        self.img = pygame.image.load('items/%s'%img)
-        self.desc = desc
-        self.bonusStren = bstr
-        self.bonusIntel = bint
-        self.bonusAgi = bagi
-        self.bonusLuck = bluk
-        self.bonusPdmg = bpdmg
-        self.bonusMdmg = bmdmg
-        self.bonusMaxHP = bhp
-        self.bonusMaxMP = bmp
-        self.bonusArmor = barm
-        self.bonusMag_armor = bmarm
-        self.bonusHit = bhit
-        self.bonusDodge = bdge
-        self.bonusCrit = bcrt
-    def addBonus(self):
-        player.bonusStren += self.bonusStren
-        player.bonusIntel += self.bonusIntel
-        player.bonusAgi += self.bonusAgi
-        player.bonusLuck += self.bonusLuck
-        player.bonusMaxHP += self.bonusMaxHP
-        player.bonusMaxMP += self.bonusMaxMP
-        player.bonusPdmg += self.bonusPdmg
-        player.bonusMdmg += self.bonusMdmg
-        player.bonusArmor += self.bonusArmor
-        player.bonusMag_armor += self.bonusMag_armor
-        player.bonusHit += self.bonusHit
-        player.bonusDodge += self.bonusDodge
-        player.bonusCrit += self.bonusCrit
-    def noBonus(self):
-        player.bonusStren -= self.bonusStren
-        player.bonusIntel -= self.bonusIntel
-        player.bonusAgi -= self.bonusAgi
-        player.bonusLuck -= self.bonusLuck
-        player.bonusMaxHP -= self.bonusMaxHP
-        player.bonusMaxMP -= self.bonusMaxMP
-        player.bonusPdmg -= self.bonusPdmg
-        player.bonusMdmg -= self.bonusMdmg
-        player.bonusArmor -= self.bonusArmor
-        player.bonusMag_armor -= self.bonusMag_armor
-        player.bonusHit -= self.bonusHit
-        player.bonusDodge -= self.bonusDodge
-        player.bonusCrit -= self.bonusCrit
+##class Item(object):
+##    def __init__(self,name,img,desc,\
+##                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost):
+##        self.name = name
+##        self.cost = cost
+##        self.img = pygame.image.load('items/%s'%img)
+##        self.desc = desc
+##        self.bonusStren = bstr
+##        self.bonusIntel = bint
+##        self.bonusAgi = bagi
+##        self.bonusLuck = bluk
+##        self.bonusPdmg = bpdmg
+##        self.bonusMdmg = bmdmg
+##        self.bonusMaxHP = bhp
+##        self.bonusMaxMP = bmp
+##        self.bonusArmor = barm
+##        self.bonusMag_armor = bmarm
+##        self.bonusHit = bhit
+##        self.bonusDodge = bdge
+##        self.bonusCrit = bcrt
+##    def addBonus(self):
+##        player.bonusStren += self.bonusStren
+##        player.bonusIntel += self.bonusIntel
+##        player.bonusAgi += self.bonusAgi
+##        player.bonusLuck += self.bonusLuck
+##        player.bonusMaxHP += self.bonusMaxHP
+##        player.bonusMaxMP += self.bonusMaxMP
+##        player.bonusPdmg += self.bonusPdmg
+##        player.bonusMdmg += self.bonusMdmg
+##        player.bonusArmor += self.bonusArmor
+##        player.bonusMag_armor += self.bonusMag_armor
+##        player.bonusHit += self.bonusHit
+##        player.bonusDodge += self.bonusDodge
+##        player.bonusCrit += self.bonusCrit
+##    def noBonus(self):
+##        player.bonusStren -= self.bonusStren
+##        player.bonusIntel -= self.bonusIntel
+##        player.bonusAgi -= self.bonusAgi
+##        player.bonusLuck -= self.bonusLuck
+##        player.bonusMaxHP -= self.bonusMaxHP
+##        player.bonusMaxMP -= self.bonusMaxMP
+##        player.bonusPdmg -= self.bonusPdmg
+##        player.bonusMdmg -= self.bonusMdmg
+##        player.bonusArmor -= self.bonusArmor
+##        player.bonusMag_armor -= self.bonusMag_armor
+##        player.bonusHit -= self.bonusHit
+##        player.bonusDodge -= self.bonusDodge
+##        player.bonusCrit -= self.bonusCrit
+##
+##    def giveBonusDesc(self):
+##        check = self.bonusStren
+##        if  check == self.bonusStren and check == self.bonusIntel and check == self.bonusAgi and check == self.bonusLuck :
+##            new = bdescMake('All Stats: ',self.bonusStren)
+##            e = bdescMake('HP: ',self.bonusMaxHP)
+##            f = bdescMake('MP: ',self.bonusMaxMP)
+##            g = bdescMake('PHYS: ',self.bonusPdmg)
+##            h = bdescMake('MAGIC: ',self.bonusMdmg)
+##            i = bdescMake('Armor: ',self.bonusArmor)
+##            j = bdescMake('Resist: ',self.bonusMag_armor)
+##            k = bdescMake('Hit: ',self.bonusHit)
+##            l = bdescMake('Dodge: ',self.bonusDodge)
+##            m = bdescMake('Crit: ',self.bonusCrit)
+##            stat_list = [new]
+##            hp_list = [e,f,g,h]
+##            armor_list = [i,j]
+##            hit_list = [k,l,m]
+##        else:
+##            a = bdescMake('Str: ',self.bonusStren)
+##            b = bdescMake('Int: ',self.bonusIntel)
+##            c = bdescMake('Agi: ',self.bonusAgi)
+##            d = bdescMake('Luk: ',self.bonusLuck)
+##            e = bdescMake('HP: ',self.bonusMaxHP)
+##            f = bdescMake('MP: ',self.bonusMaxMP)
+##            g = bdescMake('PHYS: ',self.bonusPdmg)
+##            h = bdescMake('MAGIC: ',self.bonusMdmg)
+##            i = bdescMake('Armor: ',self.bonusArmor)
+##            j = bdescMake('Resist: ',self.bonusMag_armor)
+##            k = bdescMake('Hit: ',self.bonusHit)
+##            l = bdescMake('Dodge: ',self.bonusDodge)
+##            m = bdescMake('Crit: ',self.bonusCrit)
+##            stat_list = [a,b,c,d]
+##            hp_list = [e,f,g,h]
+##            armor_list = [i,j]
+##            hit_list = [k,l,m]
+##        test_list = [bdescJoin(stat_list),bdescJoin(hp_list),bdescJoin(armor_list),bdescJoin(hit_list)]
+##        toDelete = [False,False,False,False]
+##        self.bdesc_list = []
+##        for index in range(4):
+##            if len(test_list[index]) == 0:
+##                toDelete[index] = True
+##        for index in range(4):
+##            if not toDelete[index]:
+##                   self.bdesc_list.append(test_list[index])
 
-    def giveBonusDesc(self):
-        check = self.bonusStren
-        if  check == self.bonusStren and check == self.bonusIntel and check == self.bonusAgi and check == self.bonusLuck :
-            new = bdescMake('All Stats: ',self.bonusStren)
-            e = bdescMake('HP: ',self.bonusMaxHP)
-            f = bdescMake('MP: ',self.bonusMaxMP)
-            g = bdescMake('PHYS: ',self.bonusPdmg)
-            h = bdescMake('MAGIC: ',self.bonusMdmg)
-            i = bdescMake('Armor: ',self.bonusArmor)
-            j = bdescMake('Resist: ',self.bonusMag_armor)
-            k = bdescMake('Hit: ',self.bonusHit)
-            l = bdescMake('Dodge: ',self.bonusDodge)
-            m = bdescMake('Crit: ',self.bonusCrit)
-            stat_list = [new]
-            hp_list = [e,f,g,h]
-            armor_list = [i,j]
-            hit_list = [k,l,m]
-        else:
-            a = bdescMake('Str: ',self.bonusStren)
-            b = bdescMake('Int: ',self.bonusIntel)
-            c = bdescMake('Agi: ',self.bonusAgi)
-            d = bdescMake('Luk: ',self.bonusLuck)
-            e = bdescMake('HP: ',self.bonusMaxHP)
-            f = bdescMake('MP: ',self.bonusMaxMP)
-            g = bdescMake('PHYS: ',self.bonusPdmg)
-            h = bdescMake('MAGIC: ',self.bonusMdmg)
-            i = bdescMake('Armor: ',self.bonusArmor)
-            j = bdescMake('Resist: ',self.bonusMag_armor)
-            k = bdescMake('Hit: ',self.bonusHit)
-            l = bdescMake('Dodge: ',self.bonusDodge)
-            m = bdescMake('Crit: ',self.bonusCrit)
-            stat_list = [a,b,c,d]
-            hp_list = [e,f,g,h]
-            armor_list = [i,j]
-            hit_list = [k,l,m]
-        test_list = [bdescJoin(stat_list),bdescJoin(hp_list),bdescJoin(armor_list),bdescJoin(hit_list)]
-        toDelete = [False,False,False,False]
-        self.bdesc_list = []
-        for index in range(4):
-            if len(test_list[index]) == 0:
-                toDelete[index] = True
-        for index in range(4):
-            if not toDelete[index]:
-                   self.bdesc_list.append(test_list[index])
 
 
-def bdescMake(aStat,anInteger):
-    if anInteger > 0:
-        amount = aStat + '+' + str(anInteger)
-        return amount
-    elif anInteger < 0:
-        amount = aStat + str(anInteger)
-        return amount
+def weapon_requirement(self):
+    if self == inner:
+        return player.requirement(player.LV,5)
     else:
-      if anInteger < 0:
-        return None
-
-def bdescJoin(aList):
-    aStr = ''
-    for desc in aList:
-        if desc != None:
-            aStr += desc + ', '
-    aStr = aStr[0:(len(aStr)-2)]
-##    if len(aStr) == 0:
-##        aStr = 'No Bonus'def givebdesc(aList):
-    return aStr
-
-### ARMORS ###
-class Armor(Item):
-    def __init__(self,name,img,desc,\
-                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost):
-        super(Armor,self).__init__(name,img,desc,\
-                                   bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost)
-
-class Body(Armor):
-    def __init__(self,name,img,desc,\
-                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost):
-        super(Body,self).__init__(name,img,desc,\
-                                   bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost)
-        self.type = 'Body'
-
-class Head(Armor):
-    def __init__(self,name,img,desc,\
-                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost):
-        super(Head,self).__init__(name,img,desc,\
-                                   bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost)
-        self.type = 'Head'
-
-class L_hand(Armor):
-    def __init__(self,name,img,desc,\
-                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost):
-        super(L_hand,self).__init__(name,img,desc,\
-                                   bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost)
-        self.type = 'Left Hand'
-
-        
-######################### WEAPONS #########################
-        
-class Weapon(Item):
-    def __init__(self, name, img,desc,watk,wmatk,\
-                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost):
-        super(Weapon,self).__init__(name, img,desc,\
-                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost)
-        self.damage = watk
-        self.mag_damage = wmatk
-    def weapon_requirement(self):
-        if self == inner:
-            return player.requirement(player.LV,5)
-        else:
-            return True
-
-class Sword(Weapon):
-    def __init__(self, name, img,desc,watk,wmatk,\
-                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost):
-        super(Sword,self).__init__(name, img,desc,watk,wmatk,\
-                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost)
-        self.type = 'Sword'
-
-class Axe(Weapon):
-    def __init__(self, name, img,desc,watk,wmatk,\
-                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost):
-        super(Axe,self).__init__(name, img,desc,watk,wmatk,\
-                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost)
-        self.type = 'Axe'
-
-class Wand(Weapon):
-    def __init__(self, name, img,desc,watk,wmatk,\
-                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost):
-        super(Wand,self).__init__(name, img,desc,watk,wmatk,\
-                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost)
-        self.type = 'Wand'
-
-class Staff(Weapon):
-    def __init__(self, name, img,desc,watk,wmatk,\
-                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost):
-        super(Staff,self).__init__(name, img,desc,watk,wmatk,\
-                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost)
-        self.type = 'Staff'
-
-class Dagger(Weapon):
-    def __init__(self, name, img,desc,watk,wmatk,\
-                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost):
-        super(Dagger,self).__init__(name, img,desc,watk,wmatk,\
-                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost)
-        self.type = 'Dagger'
-
-class Shuriken(Weapon):
-    def __init__(self, name, img,desc,watk,wmatk,\
-                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost):
-        super(Shuriken,self).__init__(name, img,desc,watk,wmatk,\
-                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost)
-        self.type = 'Shuriken'
-            
-def givebdesc(aList):
-    for item in aList:
-        item.giveBonusDesc()
+        return True  
 ### Shop
 ## pg1 Weapons 
 # Sword
@@ -1102,10 +998,10 @@ class Mage(Player):
         stat = 3 + round(self.agi/5 + self.luck/4)
         return stat
 
-class Rouge(Player):
+class Rogue(Player):
     def __init__(self):
         super(Rouge,self).__init__()
-        self.job = 'Rouge'
+        self.job = 'Rogue'
     def maxHPU(self):
         stat = 25 + round(self.stren*0.25 + self.LV*5)
         return stat
@@ -1309,7 +1205,7 @@ def status_bar():
     textbox(('LV %i     HP  %i / %i   MP  %i / %i' %(player.LV,player.HP,player.maxHP,player.MP,player.maxMP)),40,black,610,725)
 
 def intro():
-    # music
+    pygame.mixer.music.load('game/music/bgm_intro.mp3')
     pygame.mixer.music.play(-1)
     inSome.show = True
     while inSome.show:
@@ -1373,7 +1269,7 @@ def instructions():
         screen.fill(white)
         textbox('''INSTRUCTIONS''',50,red,screenW/2,150)
         textbox('''Use WASD keys to move, press the 1 key to see your inventory''',30,black,screenW/2,screenH/2-100)
-        textbox('''Press the 2 key to see your stats, the 3 Key to see your skills''',30,black,screenW/2,screenH/2-55)
+        textbox('''Press the 2 key to see your stats, the 3 key to see your skills''',30,black,screenW/2,screenH/2-55)
         textbox('''If something has                           use A and D to use the arrows''',30,black,screenW/2,screenH/2)
         screen.blit(small_arrow_left,centerIMG(30,30,390,385))
         screen.blit(small_arrow_right,centerIMG(30,30,465,385))
@@ -1438,7 +1334,7 @@ def job_select():
         textbox('Select Your Job',100,black,screenW/2,100)
         if boolButton('Mage',40,85,275,250,250,blue,lightBlue):
             return Mage()
-        if boolButton('Rouge',40,385,275,250,250,green,lightGreen):
+        if boolButton('Rogue',40,385,275,250,250,green,lightGreen):
             textbox('Available Soon!',60,black,screenW/2,200)
             #return Rouge()
         if boolButton('Warrior',40,685,275,250,250,red,lightRed):
@@ -1486,21 +1382,21 @@ def statsPage():
 def checkEquip(slot):
     if isinstance(slot,Weapon) and slot is not player.weapon and slot != player.weapon: # and player.weapon == fists
         if isinstance(slot,Staff): # two handed weapon
-            if player.lefthand != player.fap:
-                player.lefthand.noBonus()
+            if player.lefthand != player.fap and player.lefthand != no_left:
+                player.loseItemBonus(player.lefthand)
                 player.inv[player.numItemInv] = player.lefthand
                 player.numItemInv += 1
-            player.lefthand =no_left
+            player.lefthand = no_left
         else:
             if player.lefthand == no_left:
                 player.lefthand = player.fap
-        if slot.weapon_requirement():
+        if weapon_requirement(slot):
             saved_item = None
             if player.weapon != player.fists and slot != player.weapon: # if has weapon equipped already
                 saved_item = player.weapon
-                player.weapon.noBonus()
+                player.loseItemBonus(saved_item)
             player.weapon = slot
-            player.weapon.addBonus()
+            player.addItemBonus(slot)
             player.numItemInv -= 1
             player.inv.remove(slot)
             player.inv.append(None)
@@ -1515,7 +1411,7 @@ def checkEquip(slot):
     elif slot is player.weapon and player.weapon != player.fists and player.numItemInv < player.numMaxItem:
         if isinstance(slot,Staff):
             player.lefthand = player.fap
-        player.weapon.noBonus()
+        player.loseItemBonus(player.weapon)
         player.inv[player.numItemInv] = player.weapon
         player.numItemInv += 1
         player.weapon = player.fists
@@ -1525,9 +1421,9 @@ def checkEquip(slot):
         saved_item = None
         if player.body != player.shirt_jeans and slot != player.body: # if has weapon equipped already
             saved_item = player.body
-            player.body.noBonus()
+            player.loseItemBonus(saved_item)
         player.body = slot
-        player.body.addBonus()
+        player.addItemBonus(slot)
         player.numItemInv -= 1
         player.inv.remove(slot)
         player.inv.append(None)
@@ -1538,7 +1434,7 @@ def checkEquip(slot):
         time.sleep(0.3)
     # remove body
     elif slot == player.body and player.body != player.shirt_jeans and slot not in player.inv and player.numItemInv < player.numMaxItem:
-        player.body.noBonus()
+        player.loseItemBonus(player.body)
         player.inv[player.numItemInv] = player.body
         player.numItemInv += 1
         player.body = player.shirt_jeans
@@ -1548,9 +1444,9 @@ def checkEquip(slot):
         saved_item = None
         if player.lefthand != player.fap and slot != player.lefthand: # if has weapon equipped already
             saved_item = player.lefthand
-            player.lefthand.noBonus()
+            player.loseItemBonus(saved_item)
         player.lefthand = slot
-        player.lefthand.addBonus()
+        player.addItemBonus(slot)
         player.numItemInv -= 1
         player.inv.remove(slot)
         player.inv.append(None)
@@ -1561,7 +1457,7 @@ def checkEquip(slot):
         time.sleep(0.3)
     #remove l_hand
     elif slot == player.lefthand and player.lefthand != player.fap and player.lefthand != no_left and slot not in player.inv and player.numItemInv < player.numMaxItem:
-        player.lefthand.noBonus()
+        player.loseItemBonus(player.lefthand)
         player.inv[player.numItemInv] = player.lefthand
         player.numItemInv += 1
         player.lefthand = player.fap
@@ -1571,9 +1467,9 @@ def checkEquip(slot):
         saved_item = None
         if player.head != player.china_hat and slot != player.head: # if has weapon equipped already
             saved_item = player.head
-            player.head.noBonus()
+            player.loseItemBonus(saved_item)
         player.head = slot
-        player.head.addBonus()
+        player.addItemBonus(slot)
         player.numItemInv -= 1
         player.inv.remove(slot)
         player.inv.append(None)
@@ -1584,7 +1480,7 @@ def checkEquip(slot):
         time.sleep(0.3)
     # remove on hat
     elif slot == player.head and player.head != player.china_hat and slot not in player.inv and player.numItemInv < player.numMaxItem:
-        player.head.noBonus()
+        player.loseItemBonus(player.head)
         player.inv[player.numItemInv] = player.head
         player.numItemInv += 1
         player.head = player.china_hat
@@ -2131,7 +2027,7 @@ def fight():
     alicky = Enemy('Alicky','alec.png',1500,500, 180,250, 175,125, 90,5,5, 125,100)
     sunger = Enemy('Sunger Munger','sungmin.png',1635,1000, 115,200, 150,150, 92,5,5, 135,125)
     brownitron = Enemy('Brownitron','kaelan.png',1825,400, 130,125, 200,200, 87,5,4, 150,150)
-    ryan = Enemy('Ryan','ryan.png',1369,0, 500,10, 0,0, 120,60,50, 175,125)
+    ryan = Enemy('Ryan','ryan.png',1369,7, 500,10, 0,0, 120,60,50, 175,125)
     tina = Enemy('Tina','tina.png',2000,1000, 50,100, 200,175, 85,10,6, 200,100)
     #High level mobs
     laluche = Enemy('La Lucha Libre','ryan.png',5000,0, 800,10, 0,0, 150,60,75, 400,150)
@@ -2165,7 +2061,7 @@ def fight():
                         fightText.pg_num -= 1
                         pg_flip.play()
                 elif event.key == pygame.K_d:
-                    if fightText.pg_num + 1 < fightText.pages:
+                    if fightText.pg_num + 1 < fightText.pages+1:
                         fightText.pg_num += 1
                         pg_flip.play()
         if player.run_away:
@@ -2195,12 +2091,12 @@ def fight():
         button('Attack',35,25,350,100,100,green,lightGreen,dmg_calc,basic_attack)
         button('Skills',35,150,350,100,100,red,lightRed,learnedSkillsPage,None)
         button('Run',30,275,375,75,75,red,lightRed,dmg_calc,'run')
-        screen.blit(player.img,(425,355))
+        screenblit(player.img,(425,355))
         screen.blit(enemy.img, centerIMG(255,255,800,350))
         textbox('Turn: %i'%(fightText.turn),25,black,330,340)
         if fightText.pg_num - 1 >= 0:
             screen.blit(small_arrow_left,centerIMG(30,30,60,150))
-        if fightText.pg_num + 1 < 2:
+        if fightText.pg_num + 1 < fightText.pages+1:
             screen.blit(small_arrow_right,centerIMG(30,30,600,150))
         fightText.showText([27,27,28,32,37,45],350,0,25,50)
         showActivesAndStatus()

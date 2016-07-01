@@ -170,3 +170,25 @@ class Shuriken(Weapon):
         super(Shuriken,self).__init__(name, img,desc,watk,wmatk,\
                  bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost)
         self.type = 'Shuriken'
+
+class Potion(Item):
+    def __init__(self,name,img,desc,bdesc,hp,mp,\
+                 bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost):
+        super(Potion,self).__init__(name,img,desc,\
+                                    bstr,bint,bagi,bluk,bhp,bmp,bpdmg,bmdmg,barm,bmarm,bhit,bdge,bcrt,cost)
+        self.type = 'Potion'
+        self.bdesc = bdesc
+        self.num_held = 0
+        self.rest_hp = hp
+        self.rest_mp = mp
+    def activate_eff(self,who):
+        who.restoreHP(self.rest_hp)
+        who.restoreHP(self.rest_mp)
+        if self.num_held > 1:
+            self.num_held -= 1
+        else:
+            self.num_held -= 1
+            who.numItemInv -= 1
+            who.inv.remove(self)
+            who.inv.append(None)
+

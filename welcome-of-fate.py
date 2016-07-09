@@ -1561,6 +1561,7 @@ def fight():
             if player.exp >= player.max_exp:
                 level_up_greet()
                 player.level_up()
+                stats()
                 skillsPage()
                 player.healFullHP()
                 player.healFullMP()
@@ -1626,6 +1627,7 @@ def fightAgain():
         textbox('Keep exploring the dungeon?',50,black,screenW/2,325)
         button('Yes',80,200,450,200,200,green,lightGreen,fight,None)
         button('No',80,650,450,200,200,red,lightRed,leaveFight,None)
+        status_bar()
         pygame.display.update()
 
 def leaveFight():
@@ -1673,7 +1675,6 @@ def shop():
                     statsPage()
         # display items
         matrixSlot(4,5,shop_pg[pg_num-1],50,60,125,125)
-        ################
         # arrows
         if pg_num - 1 >= 1:
             screen.blit(small_arrow_left,centerIMG(30,30,25,screenH/2-30))

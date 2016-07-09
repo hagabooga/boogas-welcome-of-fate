@@ -119,10 +119,7 @@ class Player(object):
         self.SP += 1
         self.exp = 0
         self.max_exp = (12+self.LV) * self.LV + 8*self.LV
-        stats()
-        self.healFullHP()
-        self.healFullMP()
-
+        
     def healFullHP(self):
         self.HP = self.maxHP
     def healFullMP(self):

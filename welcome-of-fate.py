@@ -1,311 +1,84 @@
 import pygame
-from colors import *
-from class_player import *
 from sounds import *
 from images import *
+from colors import *
+from class_player import *
 from class_items import *
+from class_action import *
+from class_jobs import *
+#from skills import *
 from weapons import *
 from potions import *
+from utilities import *
 import random
 import math
 import time
 
 pygame.init()
-pygame.display.set_caption('''Booga's Welcome of Fate''')
-screenW = 1024
-screenH = 768
-screen = pygame.display.set_mode((screenW,screenH))
-clock = pygame.time.Clock()
 
-class Action:
-    def skillAttack(user,victim,used_skill):
-        user.MP -= used_skill.mana
-        if isinstance(used_skill,Physical):
-            damage = used_skill.damage - victim.armor
-        else: # magical attack
-            damage = used_skill.damage - victim.mag_armor
-        if meditate in user.fight_actives and isinstance(used_skill,Magical): # MEDITATE SKILL (all damage multipliers should go here)
-                damage *= meditate.scale/100 # a percentage
-                user.fight_actives.remove(meditate)
-        #####
-        crit_chance = user.crit
-        hit_chance = user.hit - victim.dodge
-        if hasattr(used_skill,'hit_chance'): # hit increaser
-                hit_chance += used_skill.hit_chance
-        if hit_chance >= random.choice(range(101)): # Check if hit
-            if user == player and corpse_drain.bonus_chance >= random.choice(range(101)) and isinstance(used_skill,Magical):
-                user.MP += round(used_skill.mana*.40)
-            if hasattr(used_skill,'crit_chance'): # Crit increaser
-                crit_chance += used_skill.crit_chance
-            if crit_chance >= random.choice(range(101)): # Check if crit
-                damage = round(damage*2.25) # crit multiplier
-                user.didCrit = True
-            else:
-                user.didCrit = False
-            if user == player:
-                damage += random.choice(range(0+user.luck,15+user.luck)) # bonus damage
-            else:
-                damage += random.choice(range(0,round(15+user.damage/90)))
-            if damage < 0: # if damage less than 0, damage = 0 so no heal
-                damage = 0
-            if victim.shield_hp > 0: # SHIELD DAMAGE GOES FIRST ALWAYS
-                if victim.shield_hp - damage < 0:
-                    victim.shield_hp = 0
-                    victim.HP -= damage - victim.shield_hp 
-                else:
-                    victim.shield_hp -= damage
-            elif mana_gaurd in player.fight_actives and user == enemy: # MANA GAURD SKILL
-                    if victim.MP - damage < 0: # if deal more than current MP
-                        victim.HP -= damage - victim.MP
-                        victim.MP = 0
-                    else: # else regular
-                        victim.MP -= damage
-            else: # no active skills
-                victim.HP -= damage # final calculation
-            if hasattr(used_skill,'sound'):
-                used_skill.sound.play() # sound play if hit
-            else: #generic hit sound
-                weapon_atk_sound().play()
-            return damage
-        else: # player miss
-            wear.play()
-    def skillActive(user,victim,used_skill): # all skill actives
-        user.MP -= used_skill.mana
-        used_skill.sound.play()
-        Active.effect(used_skill)
+inSome = Page()
+inFight = Page()
+inStore = Page()
+inInv = Page()
+inHosp = Page()
+inSkill = Page()
+inLearnSkill = Page()
 
-##        ###############################
-##        ### Lunge Crit/Dodge factor ###
-##        if self == player.skill_lunge:
-##            dodge_rate = victim.dodge + 15
-##            crit_rate = round(user.crit*2 + 13)
+fightText = switchTextbox(2,6) # used in fight
 
-##            total = self.damage
-##        ################################
-##        ### Sonic Hit Chance factor ####
+enemy = 'some Enemy()'
 
-             # if deal more than current MP##        elif self == player.skill_sonic:
-##            dodge_rate = round(dodge_rate*0.43 - 1)
-##            total = self.damage
-##        ###############################
-##        ### Sweep Damage Bonus ########a = 
-##        elif self == player.skill_sweep:
-##            bonus = 0
-##            time = 0
-##            for x in range(10,110,10):
-##                if victim.HP < x:
-##                    for n in range(time+1):
-##                        bonus += round(2*n*(0.5 + victim.HP/125))
-##                    total = self.damage + bonus
-##                    break
-##                time += 1
-##        ################################
-##        ### Basic Attack ##############
-class Skill(Action):
-    def __init__(self,name,img,sound,desc,effdesc,requiredesc,maxRank):
-        self.name = name
-        if img != None:
-            self.img = pygame.image.load('skills/%s'%img)
-        if sound != None:
-            self.sound = pygame.mixer.Sound('game/sounds/%s'%sound)
-        self.desc = desc
-        self.effdesc = effdesc
-        self.requiredesc = requiredesc
-        self.rank = 0
-        self.maxRank = maxRank
-        self.damage = 0
-        self.mana = 0
-        
-    def skill_requirement(self): ##### ALL SKILL REQUIREMENTS
-        if isinstance(self,Magical):
-            if self == fireball:
+
+def skill_requirement(aSkill): ##### ALL SKILL REQUIREMENTS
+        if isinstance(aSkill,Magical):
+            if aSkill == fireball:
                 return player.LV >= 4 and ember.rank >= 3
-            elif self == river:
+            elif aSkill == river:
                 return player.LV >= 4 and shower.rank >= 3
-            elif self == gust:
+            elif aSkill == gust:
                 return player.LV >= 4 and breeze.rank >= 3
-            elif self == thunderbolt:
+            elif aSkill == thunderbolt:
                 return player.LV >= 4 and shock.rank >= 3
-            elif self == blaze:
+            elif aSkill == blaze:
                 return player.LV >= 10 and fireball.rank >= 3
-            elif self == waterfall:
+            elif aSkill == waterfall:
                 return player.LV >= 10 and river.rank >= 3
-            elif self == whirlwind:
+            elif aSkill == whirlwind:
                 return player.LV >= 10 and gust.rank >= 3
-            elif self == lightning:
+            elif aSkill == lightning:
                 return player.LV >= 10 and thunderbolt.rank >= 3
-            elif self == inferno:
+            elif aSkill == inferno:
                 return player.LV >= 18 and blaze.rank >= 3
-            elif self == tsunami:
+            elif aSkill == tsunami:
                 return player.LV >= 18 and waterfall.rank >= 3
-            elif self == tornado:
+            elif aSkill == tornado:
                 return player.LV >= 18 and whirlwind.rank >= 3
-            elif self == thunderstorm:
+            elif aSkill == thunderstorm:
                 return player.LV >= 18 and lightning.rank >= 3
             else:
                 return True
-        elif isinstance(self,Active):
-            if self == mana_gaurd:
+        elif isinstance(aSkill,Active):
+            if aSkill == mana_gaurd:
                 return player.LV >= 2
-            elif self == restore:
+            elif aSkill == restore:
                 return player.LV >= 4
-            elif self == barrier:
+            elif aSkill == barrier:
                 return player.LV >= 6
-            elif self == meditate:
+            elif aSkill == meditate:
                 return player.LV >= 9
             else:
                 return True
-        elif isinstance(self,Passive):
-            if self == magic_mast:
+        elif isinstance(aSkill,Passive):
+            if aSkill == magic_mast:
                 return player.LV >= 5
-            elif self == mana_armor:
+            elif aSkill == mana_armor:
                 return player.LV >= 8
-            elif self == as_one:
+            elif aSkill == as_one:
                 return player.LV >=5
             else:
                 return True
         else:
             return True
-    def status_effect(self,victim):
-        if hasattr(self,'burn_chance'):
-            if self.burn_chance >= random.choice(range(101)):
-                if st_burn not in victim.fight_status:
-                    victim.fight_status.append(st_burn)
-                return st_burn
-        elif hasattr(self,'para_chance'):
-            if self.para_chance >= random.choice(range(101)):
-                if st_burn not in victim.fight_status:
-                    victim.fight_status.append(st_para)
-                return st_para
-        elif hasattr(self,'bleed_chance'):
-            if self.bleed_chance >= random.choice(range(101)):
-                if st_burn not in victim.fight_status:
-                    victim.fight_status.append(st_bleed)
-                return st_bleed
-        elif hasattr(self,'curse_chance'):
-            if self.curse_chance >= random.choice(range(101)):
-                if st_curse not in victim.fight_status:
-                    victim.fight_status.append(st_curse)
-                return st_curse
-        else:
-            return None
-    
-
-class Physical(Skill):
-    def __init__(self,name,img,sound,desc,effdesc,requiredesc,maxRank):
-        super(Physical,self).__init__(name,img,sound,desc,effdesc,requiredesc,maxRank)
-        self.type = 'Spell'
-class Magical(Skill):
-    def __init__(self,name,img,sound,desc,effdesc,requiredesc,maxRank):
-        super(Magical,self).__init__(name,img,sound,desc,effdesc,requiredesc,maxRank)
-        self.type = 'Spell'
-# actives and passives have unique detail
-class Active(Skill):
-    def __init__(self,name,img,sound,desc,effdesc,requiredesc,maxRank):
-        super(Active,self).__init__(name,img,sound,desc,effdesc,requiredesc,maxRank)
-        self.type = 'Active' 
-        del self.damage
-    def effect(used_skill):
-        player.fight_actives.append(used_skill)
-        if used_skill == mana_gaurd:
-            mana_gaurd.setTurnEnd(fightText.turn,5)
-            mana_gaurd.setCooldownEnd(fightText.turn,mana_gaurd.cooldown)
-        elif used_skill == restore:
-            player.restoreHP(restore.hp)
-            player.bonusLuck += restore.bonus_stat
-            player.bonusHit += restore.bonus_stat
-            player.bonusCrit += restore.bonus_stat
-            restore.setTurnEnd(fightText.turn,3)
-            restore.setCooldownEnd(fightText.turn,restore.cooldown)
-        elif used_skill == barrier:
-            player.shield_hp = barrier.shield
-            barrier.setTurnEnd(fightText.turn,3)
-            barrier.setCooldownEnd(fightText.turn,barrier.cooldown)
-        elif used_skill == meditate:
-            meditate.setCooldownEnd(fightText.turn,meditate.cooldown)
-
-    def loseEffect(self):
-        if self == restore:
-            player.bonusLuck -= restore.bonus_stat
-            player.bonusHit -= restore.bonus_stat
-            player.bonusCrit -= restore.bonus_stat
-        elif self == barrier:
-            player.shield_hp -= barrier.shield
-            
-    def setTurnEnd(self,turn,duration):
-        self.turnEnd = turn + duration
-    def setCooldownEnd(self,turn,duration):
-        self.cooldownEnd = turn + duration
-    def delCooldownEnd(self):
-        if hasattr(self,'cooldownEnd'):
-            del self.cooldownEnd
-                
-class Passive(Skill):
-    def __init__(self,name,img,sound,desc,effdesc,requiredesc,maxRank):
-        super(Passive,self).__init__(name,img,sound,desc,effdesc,requiredesc,maxRank)
-        if name == 'Corpse Drain':
-            self.rank += 1
-        self.type = 'Passive'
-        del self.damage
-    def giveBonus(self):
-        if self == max_mp_inc:
-            player.bonusMaxMP += self.bonus
-            player.MP += self.bonus
-        elif self == magic_mast:
-            player.bonusLuck += self.bonus
-            player.bonusCrit += self.bonus
-            player.bonusHit += self.bonus
-        elif self == mana_armor:
-            player.bonusArmor += self.bonus
-            player.bonusMag_armor += self.bonus
-        elif self == as_one:
-            player.rank_up_as_one = True
-            player.bonusMaxMP += as_one.bonus
-            as_one.given_bonus = as_one.bonus
-            
-            
-
-basic_attack = Physical('Basic Attack',None,None,'Attack with your weapon','Deals physical damage','',0)
-# Mage Skills #1
-# attack skills
-ember = Magical('Ember','mage/damage/ember.png','fire.wav','Burn the enemy','Small chance to burn','',3)
-shower = Magical('Shower','mage/damage/shower.png','water.wav','Call the rain to fall','Increased hit rate','',3)
-breeze = Magical('Breeze','mage/damage/breeze.png','wind.wav','Blow the enemy away','Increased crit rate, decreased hit chance','',3)
-shock = Magical('Shock','mage/damage/shock.png','thunder.wav','Shock with electricity','Small chance to paralyze, small increased crit rate','',3)
-fireball = Magical('Fireball','mage/damage/fireball.png','fire.wav','Lob a ball of fire','Medium rate to burn','LV: 4, Ember: Rank 3',3)
-river = Magical('River','mage/damage/river.png','water.wav','Call a river','More increased hit rate','LV: 4, Shower: Rank: 3',3)
-gust = Magical('Gust','mage/damage/gust.png','wind.wav','Make the enemy fly','More increased crit rate, decreased hit chance','LV: 4, Breeze: Rank: 3',3)
-thunderbolt = Magical('Thunderbolt','mage/damage/thunderbolt.png','thunder.wav','Pikachu','Medium chance to paralyze, increased crit rate','LV: 4, Shock: Rank: 3',3)
-blaze = Magical('Blaze','mage/damage/blaze.png','fire.wav','Set enemy ablaze','High chance to burn','LV: 10, Fireball: Rank: 3',3)
-waterfall = Magical('Waterfall','mage/damage/waterfall.png','water.wav','A fall of water','Greatly increased hit rate', 'LV: 10, River: Rank: 3',3)
-whirlwind = Magical('Whirlwind','mage/damage/whirlwind.png','wind.wav','A strong wind','Greatly increased crit rate, decreased hit chance','LV: 10, Gust: Rank: 3',3)
-lightning = Magical('Lightning','mage/damage/lightning.png','thunder.wav','Electrify the enemy','High chance to paralyze, more increased crit rate',\
-                    'LV: 10, Thunderbolt: Rank: 3',3)
-inferno = Magical('Inferno','mage/damage/inferno.png','fire.wav','The strongest flames in the game','Higher chance to burn','LV: 18, Blaze: Rank: 3',3)
-tsunami = Magical('Tsunami','mage/damage/tsunami.png','water.wav','Wash away the enemy','Greater increased hit rate','LV: 18, Waterfall: Rank: 3',3)
-tornado = Magical('Tornado','mage/damage/tornado.png','wind.wav','Blow away the enemy','Greater increased crit rate, decreased hit chance','LV: 18, Whirlwind: Rank: 3',3)
-thunderstorm = Magical('Thunderstorm','mage/damage/thunderstorm.png','thunder.wav','A storm of lightning','Higher chance to paralyze, Greatly increased crit rate',\
-                       'LV: 18, Lightning: Rank: 3',3)
-## Actives
-mana_gaurd = Active('Mana Gaurd','mage/active/mana_gaurd.png','pheal.wav','Mana gaurds your health','For 5 turns, take damage from mana instead of health','LV: 2',3)
-restore = Active('Restore','mage/active/restore.png','heal.wav','Restore health','Restore health and gain temp. bonuses for 3 turns','LV: 4',5)
-barrier = Active('Barrier','mage/active/barrier.png','charge.wav','Create a barrier','For 3 turns, create a shield','LV: 6',5)
-meditate = Active('Meditate','mage/active/meditate.png','charge.wav','Focus your mind','Next spell deals massive damage','LV: 9',4)
-
-## Passives
-corpse_drain = Passive('Corpse Drain','mage/passive/corpse_drain.png',None,'Gain more when killing','Defeating enemy or using damaging skill, gain MP','',4)
-max_mp_inc = Passive('Max MP +','mage/passive/max_mp_inc.png',None,'Expand your mind','Increases Maximum MP','',7)
-magic_mast = Passive('Spell Mastery','mage/passive/magic_mast.png',None,'Train your skills','Increases Luck/Hit/Crit Chance','LV: 5',5)
-mana_armor = Passive('Mana Armor','mage/passive/mana_armor.png',None,'Mana is Armor','Gain bonus Armor/Resist based on Current Max MP','LV: 8',3)
-as_one = Passive('As One','mage/passive/as_one.png',None,'You are one','Set Str/HP = 1, gain bonus MP based on difference','LV: 5',1)
-
-# lists in list
-mage_skills_pg = [[ember,shower,breeze,shock,\
-                   fireball,river,gust,thunderbolt,\
-                   blaze,waterfall,whirlwind,lightning,\
-                   inferno,tsunami,tornado,thunderstorm],\
-                  [mana_gaurd,restore,barrier,meditate,None,None,None,None,\
-                   max_mp_inc,magic_mast,mana_armor,as_one,corpse_drain,None,None,None]]
 
 def skillUpdate():
     if player.job == 'Mage': # MAGE SKILLS
@@ -405,116 +178,6 @@ def skillUpdate():
         else:
             as_one.detail = 'You have gained, Max MP: +%i'%as_one.given_bonus
 
-### Rouge Skills #1
-##bleed = Skill()
-##cripple = Skill()
-##cutthroat = Passive()
-##stealth = Skill()
-
-
- ### Warrior Skills #1
-##lunge = Skill('Lunge','lunge.png','Deal medium damage with increased crit chance but low hit chance')
-##sonic = Skill()
-##blaze = Skill()
-##sweep = Skill()
-
-class Warrior(Player):
-    def __init__(self):
-        super(Warrior,self).__init__()
-        self.job = 'Warrior'
-    def maxHPU(self):
-        stat = 35 + round(self.stren*0.35 + self.LV*7)
-        return stat
-    def maxMPU(self):
-        stat = 15 + round(self.intel*0.3 + self.LV*3)
-        return stat
-    def damageU(self):
-        stat = round(self.weapon.damage*(1+self.stren/50))
-        return stat
-    def mag_damageU(self):
-        stat = round(self.weapon.mag_damage*(1+self.intel/60))
-        return stat
-    def armorU(self):
-        stat = 2 + round(self.stren/33)
-        return stat
-    def mag_armorU(self):
-        stat = 1 + round(self.intel/25)
-        return stat
-    def hitU(self):
-        stat = 95 + round(self.agi/5 + self.luck/6)
-        return stat
-    def dodgeU(self):
-        stat = 1 + round(self.agi/15 + self.luck/13)
-        return stat
-    def critU(self):
-        stat = 1 + round(self.agi/12 + self.luck/12)
-        return stat
-
-class Mage(Player):
-    def __init__(self):
-        super(Mage,self).__init__()
-        self.job = 'Mage'
-        self.img = pygame.image.load('game/player/play_mage.png')
-    def maxHPU(self):
-        stat = round(325 + self.stren*11.47 + self.LV*38)
-        return stat
-    def maxMPU(self):
-        stat = round(400 + self.intel*24.483 + self.LV*150)
-        return stat
-    def damageU(self):
-        stat = round(25 + 3*self.LV + self.stren/4.2 + self.weapon.damage + self.weapon.damage*(1+self.stren/50))
-        return stat
-    def mag_damageU(self):
-        stat = round(11 + 8*self.LV + self.intel/2 + self.weapon.mag_damage + self.weapon.mag_damage*(1+self.intel/50))
-        return stat
-    def armorU(self):
-        stat = 10 + round(self.stren/2 + self.intel/5 + self.agi/3)
-        return stat
-    def mag_armorU(self):
-        stat = 15 + round(self.intel/2 + self.agi/3)
-        return stat
-    def hitU(self):
-        stat = 95 + round(self.agi/6 + self.luck/5)
-        return stat
-    def dodgeU(self):
-        stat = 1 + round(self.agi/5 + self.luck/4)
-        return stat
-    def critU(self):
-        stat = 3 + round(self.agi/5 + self.luck/4)
-        return stat
-
-class Rogue(Player):
-    def __init__(self):
-        super(Rouge,self).__init__()
-        self.job = 'Rogue'
-    def maxHPU(self):
-        stat = 25 + round(self.stren*0.25 + self.LV*5)
-        return stat
-    def maxMPU(self):
-        stat = 25 + round(self.intel*0.4 + self.LV*5)
-        return stat
-    def damageU(self):
-        stat = round(self.weapon.damage*(1+self.stren/55))
-        return stat
-    def mag_damageU(self):
-        stat = round(self.weapon.mag_damage*(1+self.intel/55))
-        return stat
-    def armorU(self):
-        stat = 1 + round(self.stren/40 + self.agi/35)
-        return stat
-    def mag_armorU(self):
-        stat = 2 + round(self.intel/20 + self.agi/35)
-        return stat
-    def hitU(self):
-        stat = 105 + round(self.agi/5 + self.luck/6)
-        return stat
-    def dodgeU(self):
-        stat = 5 + round(self.agi/12 + self.luck/12)
-        return stat
-    def critU(self):
-        stat = 5 + round(self.agi/10 + self.luck/10)
-        return stat
-
 class Enemy:
     def __init__(self, name, img, HP, MP, damage, mag_damage, armor, mag_armor, hit, dodge, crit, loot, exp):
         self.name = name
@@ -548,125 +211,7 @@ class Enemy:
         self.curse.damage = round(10 + self.mag_damage*1.25)
         self.curse.mana = round(self.mag_damage*1.43)
         self.curse.curse_chance = 33
-
-
-class Page:
-    def __init__(self):
-        self.show = False
-    def enter(self):
-        self.show = True
-    def leave(self):
-        self.show = False
-
-inSome = Page()
-inFight = Page()
-inStore = Page()
-inInv = Page()
-inHosp = Page()
-inSkill = Page()
-inLearnSkill = Page()
-
-class switchTextbox: # each page has x amount of columns of textboxes
-    def __init__(self,pages,column):
-        self.text_list = [] # each row has ['aText',aColor]
-        startText = []
-        for page in range(pages):
-            for col in range(column):
-                startText.append(['',black])
-            self.text_list.append(startText)
-            startText = []
-        self.column = column
-        self.pg_num = 1
-        self.pages = pages - 1
-    def addText(self,newTextList):
-        del self.text_list[0]
-        new_text_list = []
-        for col in range(self.column):
-            new_text_list.append(['',black])            
-        self.text_list.append(new_text_list)
-        for text in newTextList:
-            del self.text_list[self.pages][0]
-            self.text_list[self.pages].append(text)
-    def reset(self):
-        startText = []
-        for page in range(self.pages+1):
-            for col in range(self.column):
-                startText.append(['',black])
-            self.addText(startText)
-    def showText(self,textSizeList,x,x_dis,y,y_dis):
-        xdis = 0
-        ydis = 0
-        for col in range(self.column):
-            textbox(self.text_list[self.pg_num][col][0],textSizeList[col],self.text_list[self.pg_num][col][1],x+xdis,y+ydis)
-            x += x_dis
-            y += y_dis
-
-fightText = switchTextbox(2,6) # used in fight
-
-enemy = 'some Enemy()'
-name = ''
-
-
-def doNone():
-    None
-    
-# place center img
-def centerIMG(imgX, imgY, x, y):
-    center = ((x - imgX / 2), (y - imgY / 2))
-    return center
-
-# Make a textbox
-def textObj(text, font, color):
-    textSurface = font.render(text, True, color)
-    return textSurface, textSurface.get_rect()
-
-def textbox(msg, size, color, x, y):
-    fontSize = pygame.font.Font('game/font/segoeuil.ttf',size)
-    textSurf, textRect = textObj(msg, fontSize, color)
-    textRect.center = ((x, y))
-    screen.blit(textSurf, textRect)
-
-# Rotate an image
-def rotate_img(now_direct, want_direct, img):
-    rotate_time = want_direct - now_direct
-    rotate_time = rotate_time * 45
-    newIMG = pygame.transform.rotate(img, rotate_time)
-    return newIMG
-
-# rectangle buttons
-def button(msg, msgSize, x, y, w, h, color, onColor, action, parameter):
-    # print(mouse)
-    mouse = pygame.mouse.get_pos()
-    click = pygame.mouse.get_pressed()
-    # print(click) (left click,scroll click, right click)
-    if x + w > mouse[0] > x and y + h > mouse[1] > y:
-        pygame.draw.rect(screen, color, (x, y, w, h))
-        if click[0] == 1 and parameter != None:
-            action(parameter)
-        elif click[0] == 1 and parameter == None:
-            action()
-    else:
-        pygame.draw.rect(screen, onColor, (x, y, w, h))
-    textbox(msg, msgSize, black, x + w / 2, y + h / 2)
-
-def boolButton(msg, msgSize, x, y, w, h, color, onColor):
-    mouse = pygame.mouse.get_pos()
-    click = pygame.mouse.get_pressed()
-    if x + w > mouse[0] > x and y + h > mouse[1] > y:
-        pygame.draw.rect(screen, color, (x, y, w, h))
-        textbox(msg, msgSize, black, x + w / 2, y + h / 2)
-        if click[0] == 1:
-            return True
-    else:
-        pygame.draw.rect(screen, onColor, (x, y, w, h))
-        textbox(msg, msgSize, black, x + w / 2, y + h / 2)
-        return False
-
-
-def quitGame():
-    pygame.quit()
-    quit()
-
+        
 def gameover():
     inSome.enter()
     while inSome.show:
@@ -680,7 +225,7 @@ def gameover():
         button('No',80,650,450,200,200,red,lightRed,quitGame,None)
         pygame.display.update()
     player.healFullHP()
-    player.cash = 0
+    player.cash = round(player.cash/2)
     time.sleep(0.5)
 
 def status_bar():
@@ -807,7 +352,6 @@ def stats():
         status_bar()
         pygame.display.update()
         clock.tick(15)
-
 
 def job_select():
     inSome.show = True
@@ -990,7 +534,7 @@ def slotButton(slot,x,y,w,h):
     click = pygame.mouse.get_pressed()
     if inSkill.show or inLearnSkill.show: # skill page shows if requirement is met
         if slot != None:
-            if slot.skill_requirement():
+            if skill_requirement(slot):
                 if x+w > mouse[0] > x and y+h > mouse[1] > y:  # show box and highlight when mouse hovers over
                     pygame.draw.rect(screen, green, (x,y,w,h))
                 else:
@@ -1026,7 +570,7 @@ def slotButton(slot,x,y,w,h):
                     if not inFight.show or enemy.HP <= 0:
                         if player.SP > 0 and slot != None:
                             if player.numLearnedSkills != player.numMaxSkills:
-                                if slot.skill_requirement():
+                                if skill_requirement(slot):
                                     if slot.rank == 0 or slot not in player.learned_skills: # add skill into leanred skill
                                         if not isinstance(slot,Passive):
                                             player.learned_skills[player.numLearnedSkills] = slot
@@ -1061,7 +605,7 @@ def slotButton(slot,x,y,w,h):
                             else:
                                 textbox('Maximum number of skills learned!',35,blue,800,235)
                         else:
-                            if  slot != None and not slot.skill_requirement():
+                            if  slot != None and not skill_requirement(slot):
                                 textbox('Requirements not met!',35,blue,800,235)
                             elif slot != None:
                                     textbox('Not enough SP!',50,blue,800,235)

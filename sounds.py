@@ -1,6 +1,8 @@
 import pygame
 import random
+
 pygame.init()
+
 def weapon_atk_sound():
     atk_sound = pygame.mixer.Sound(random.choice(['game/sounds/atk1.wav','game/sounds/atk2.wav','game/sounds/atk3.wav',\
                                                   'game/sounds/atk4.wav','game/sounds/atk5.wav','game/sounds/atk6.wav','game/sounds/atk7.wav']))

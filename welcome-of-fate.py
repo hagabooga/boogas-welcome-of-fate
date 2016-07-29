@@ -2063,7 +2063,7 @@ def saveGame():
             
 
 # Main
-##intro()
+intro()
 player = job_select()
 enter_name()
 stats()

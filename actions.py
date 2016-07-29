@@ -64,7 +64,7 @@ def hitModifier(user,victim,used_skill):
     if st_crip in user.fight_status:
         hit /= round(victim.maxHP/victim.HP)
     if st_conf in user.fight_status:
-        hit = round(hit/2)
+        hit = round(hit/3)
         if random.choice(range(5)) == 0:
             user.fight_status.remove(st_conf)
     return hit

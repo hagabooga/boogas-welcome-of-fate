@@ -1,4 +1,4 @@
-from class_items import *
+from items import *
 inner = Sword('Inner','warrior/sword/inner.png','Strong base, weak tip',16,1,\
                4, 0, 0, 0, 0, 0, 0, 0, 0, 0, -15, 0, 0, 200)
 katana = Sword('Katana','warrior/sword/katana.png','A sharp sword that easily cuts',25,15,\
@@ -10,55 +10,8 @@ battleaxe = Axe('Battleaxe','warrior/axe/battleaxe.png','Can chop a tree with on
                    6, 0, 0, 0, 0, 0, 0, 0, 0, 0, -20, 0, 0, 460)
 big_axe = Axe('Big Axe','warrior/axe/big_axe.png','A huge axe that can cause an earthquake',70,0,\
                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4500)
-# Wand
-wand = Wand('Wand','mage/wand/app_wand.png','A wooden wand',3,7,\
-            0, 5, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 225)
-mag_wand = Wand('Magic Wand','mage/wand/mag_wand.png','A magic wand',7,17,\
-            0, 14, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 450)
 
-star_wand = Wand('Star Wand','mage/wand/star_wand.png','A Star wand',9,27,\
-            0, 25, 0, 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 800)
 
-element_wand = Wand('Element Wand','mage/wand/element_wand.png','An Elemental wand',14,50,\
-            0, 42, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 0, 1500)
-# Staff
-staff = Staff('Staff','mage/staff/app_staff.png','A wooden staff used by novice mages',5,9,\
-               0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 250)
-mag_staff = Staff('Magic Staff','mage/staff/mag_staff.png','A staff powered up by magic',9,21,\
-                     0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 500)
-star_staff = Staff('Star Staff','mage/staff/star_staff.png','A staff blessed by the power of the stars',10,32,\
-                    0, 31, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 900)
-element_staff = Staff('Elemental Staff','mage/staff/element_staff.png','A staff imbued with fire, wind and water',16,55,\
-                       0, 47, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1600)
-# Dagger
-long_dag = Dagger('Long Dagger','rouge/dagger/long_dag.png','A long blade dagger',12,12,\
-                  0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 250)
-edge_dag = Dagger('Edged Dagger','rouge/dagger/edge_dag.png','A sharper dagger',18,18,\
-                  0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 28, 550)
-poison_dag = Dagger('Poisoned Dagger','rouge/dagger/poison_dag.png','A dagger dipped in poison',23,23,\
-                    0, 0, 12, 12, 0, 0, 0, 0, 0, 0, 0, 0, 32, 650)
-balance_dag = Dagger('Balanced Dagger','rouge/dagger/balance_dag.png','Sharp and fast',32,32,\
-                     15, 15, 15, 15, 0, 0, 0, 0, 0, 0, 0, 0, 38, 875)
-# Shuriken
-# Balanced
-shortsword = Dagger('Shortsword','balance/weapon/shortsword.png','A cheap, simple and easy to use sword',7,7,\
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 125)
-longsword = Sword('Longsword','balance/weapon/longsword.png','A standard sword used by many swordsmen',19,5,\
-                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 225)
-tipper = Sword('Tipper','balance/weapon/tipper.png','Strong at the tip but weak at the base',15,10,\
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 200)
-def_sword = Sword('Defensive Sword','balance/weapon/def_sword.png','Big and heavy sword',14,14,\
-                   0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 325)
-# Fun
-fire_sword = Sword('Fire Sword','balance/weapon/fire_sword.png','Blaze Strike: +5 ranks, -15 mana cost',35,25,\
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1250)
-fruit = Axe('The Fruits of Booga','fun/weapon/fruit.png','Fruits saved when Booga dropped them from the sky',70,70,\
-               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6000)
-allin = Axe('All In','fun/weapon/allin.png','HP set to 8',120,120,\
-               50, 50, 50, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12000)
-shop_weapons_1 = [inner,battleaxe,katana,scimitar,shortsword,longsword,tipper,def_sword,staff,mag_staff,star_staff,element_staff,\
-       long_dag,edge_dag,poison_dag,balance_dag,fire_sword,big_axe,fruit,allin]
-givebdesc(shop_weapons_1)
 ## pg2 Armors Body
 # Warrior
 bronze_body = Body('Bronze Armour','warrior/body/bronze_body.png','Armour made from bronze',\
@@ -70,13 +23,13 @@ steel_body = Body('Steel Armour','warrior/body/steel_body.png','Armour made from
 dia_body = Body('Diamond Armour','warrior/body/dia_body.png','Armour made from Diamond. The strongest armour',\
                 15, 0, 0, 0, 50, 0, 0, 0, 49, 9, 0, 0, 0, 1200)
 # Rouge
-cloak = Body('Cloak','rouge/body/cloak.png','A cloak made to blend in with the shadows',\
+cloak = Body('Cloak','rogue/body/cloak.png','A cloak made to blend in with the shadows',\
              0, 0, 5, 0, 0, 0, 0, 0, 7, 7, 0, 10, 0, 150)
-black_cloak = Body('Black Cloak','rouge/body/black_cloak.png','A cloak darker than the night',\
+black_cloak = Body('Black Cloak','rogue/body/black_cloak.png','A cloak darker than the night',\
                    0, 0, 8, 0, 0, 0, 0, 0, 12, 12, 5, 20, 0, 400)
-stealth_cloak = Body('Stealth Cloak','rouge/body/stealth_cloak.png','A cloak that blends in with its surroundings',\
+stealth_cloak = Body('Stealth Cloak','rogue/body/stealth_cloak.png','A cloak that blends in with its surroundings',\
                      0, 0, 12, 0, 0, 0, 0, 0, 20, 20, 10, 30, 0, 1000)
-ass_cloak = Body('''Assasin's Cloak''','rouge/body/ass_cloak.png','think ur good?',\
+ass_cloak = Body('''Assasin's Cloak''','rogue/body/ass_cloak.png','think ur good?',\
                  0, 0, 20, 0, 0, 0, 0, 0, 31, 31, 15, 40, 0, 1500)
 # Mage
 robe = Body('Robe','mage/body/app_robe.png','A simple robe made from cloth',\
@@ -86,6 +39,10 @@ mag_robe = Body("Magician's Robe",'mage/body/mag_robe.png','A robe used by exper
 star_robe = Body('Star Robe','mage/body/star_robe.png','A robe blessed by the stars',\
                 0, 14, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 450)
 
+wand = Wand('Wand','mage/wand/app_wand.png','A wooden wand',3,7,\
+            0, 5, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 225)
+mag_wand = Wand('Magic Wand','mage/wand/mag_wand.png','A magic wand',7,17,\
+            0, 14, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 450)
 star_wand = Wand('Star Wand','mage/wand/star_wand.png','A Star wand',9,27,\
             0, 25, 0, 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 800)
 
@@ -101,15 +58,26 @@ star_staff = Staff('Star Staff','mage/staff/star_staff.png','A staff blessed by 
 element_staff = Staff('Elemental Staff','mage/staff/element_staff.png','A staff imbued with fire, wind and water',16,55,\
                        0, 47, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1600)
 # Dagger
-long_dag = Dagger('Long Dagger','rouge/dagger/long_dag.png','A long blade dagger',12,12,\
-                  0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 250)
-edge_dag = Dagger('Edged Dagger','rouge/dagger/edge_dag.png','A sharper dagger',18,18,\
-                  0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 28, 550)
-poison_dag = Dagger('Poisoned Dagger','rouge/dagger/poison_dag.png','A dagger dipped in poison',23,23,\
-                    0, 0, 12, 12, 0, 0, 0, 0, 0, 0, 0, 0, 32, 650)
-balance_dag = Dagger('Balanced Dagger','rouge/dagger/balance_dag.png','Sharp and fast',32,32,\
-                     15, 15, 15, 15, 0, 0, 0, 0, 0, 0, 0, 0, 38, 875)
+long_dag = Dagger('Long Dagger','rogue/dagger/long_dag.png','A long blade dagger',12,12,\
+                  0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 25, 0, 0, 250)
+edge_dag = Dagger('Edged Dagger','rogue/dagger/edge_dag.png','A sharper dagger',50,50,\
+                  0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 28, 0, 0, 550)
+poison_dag = Dagger('Poisoned Dagger','rogue/dagger/poison_dag.png','A dagger dipped in poison',90,90,\
+                    0, 0, 12, 12, 0, 0, 0, 0, 0, 0, 32, 0, 0, 650)
+balance_dag = Dagger('Balanced Dagger','rogue/dagger/balance_dag.png','Sharp and fast',150,150,\
+                     15, 15, 15, 15, 0, 0, 0, 0, 0, 0, 38, 0, 0, 875)
+
 # Shuriken
+brnze_shur = Shuriken('Bronze Shuriken','rogue/shur/brnze_shur.png','Cheap and durable',20,6,\
+                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 875)
+iron_shur = Shuriken('Iron Shuriken','rogue/shur/iron_shur.png','Better than bronze',75,25,\
+                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 875)
+steel_shur = Shuriken('Steel Shuriken','rogue/shur/steel_shur.png','Sharp and fast',140,40,\
+                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 21, 875)
+dia_shur = Shuriken('Diamond Shuriken','rogue/shur/dia_shur.png','Able to cut anything',220,90,\
+                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 29, 875)
+
+
 # Balanced
 shortsword = Dagger('Shortsword','balance/weapon/shortsword.png','A cheap, simple and easy to use sword',7,7,\
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 125)
@@ -183,6 +151,16 @@ star_hat = Head('Star Hat','mage/head/star_hat.png','This hat glows a bit',\
 element_hat = Head('Element Hat','mage/head/element_hat.png','Focus the elements',\
                   0, 40, 0, 0, 0, 0, 0, 0, 100, 210, 0, 0, 0, 5000)
 
+# rogue
+leather_hank = Head('Leather Hank','rogue/head/leather_hank.png','Simple hankerchief',\
+                  0, 0, 4, 0, 0, 0, 0, 0, 15, 15, 0,7, 0, 500)
+black_hank = Head('Black Hank','rogue/head/black_hank.png','Focus the elements',\
+                  0, 0, 8, 0, 0, 0, 0, 0, 40, 40, 0, 12, 0, 1200)
+stealth_hank = Head('Stealth Hank','rogue/head/stealth_hank.png','Focus the elements',\
+                  0, 0, 12, 0, 0, 0, 0, 0, 60, 60, 0, 16, 0, 2500)
+assasin_hank = Head('Assasin Hank','rogue/head/assasin_hank.png','Focus the elements',\
+                  0, 0, 16, 0, 0, 0, 0, 0, 100, 100, 0, 25, 0, 5000)
+
 shop_L_hand_1 = [shld_wood,shld_mana,shld_star,shld_element,\
                  app_hat,mage_hat,star_hat,element_hat,\
                  None,None,None,None,\
@@ -191,14 +169,26 @@ shop_L_hand_1 = [shld_wood,shld_mana,shld_star,shld_element,\
 
 givebdesc(shop_L_hand_1[0:8])
 
+
+
+
 ### FOR ALPHA USE
 shop_alpha_mage1 = [wand,staff,robe,app_hat,shld_wood,\
                     mag_wand,mag_staff,mag_robe,mage_hat,shld_mana,\
                     star_wand,star_staff,star_robe,star_hat,shld_star,\
                     element_wand,element_staff,element_robe,element_hat,shld_element]
+
+shop_alpha_rogue1 = [long_dag,brnze_shur,cloak,leather_hank,None,\
+                     edge_dag,iron_shur,black_cloak,black_hank,None,\
+                     poison_dag,steel_shur,stealth_cloak,stealth_hank,None,\
+                     balance_dag,dia_shur,ass_cloak,assasin_hank,None]
+
+givebdesc([brnze_shur,iron_shur,steel_shur,dia_shur,leather_hank,black_hank,stealth_hank,assasin_hank])
+
+
 givebdesc(shop_alpha_mage1[0:20:5])
 
-shop_pg = [shop_alpha_mage1]
+shop_pg = [shop_alpha_mage1,shop_alpha_rogue1]
 
 #shop_pg = [shop_weapons_1,shop_body_1,shop_L_hand_1] # list in list
 

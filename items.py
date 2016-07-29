@@ -183,7 +183,7 @@ class Potion(Item):
         self.rest_mp = mp
     def activate_eff(self,who):
         who.restoreHP(self.rest_hp)
-        who.restoreHP(self.rest_mp)
+        who.restoreMP(self.rest_mp)
         if self.num_held > 1:
             self.num_held -= 1
         else:

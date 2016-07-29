@@ -18,9 +18,9 @@ class Player(object):
         self.old_luck = 3
         # Stats
         self.HP = 0
-        self.maxHP = 0
+        self.maxHP = 1
         self.MP = 0
-        self.maxMP = 0
+        self.maxMP = 1
         self.damage = 0
         self.mag_damage = 0
         self.armor = 0
@@ -43,6 +43,7 @@ class Player(object):
         self.bonusHit = 0
         self.bonusDodge = 0
         self.bonusCrit = 0
+        self.bonusCritMulti = 0
         # Inventory
         self.fists = Axe('Fists','basic/fists.png','Bare hands (cannot unequip)',1,1,\
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -62,11 +63,13 @@ class Player(object):
         self.AP = 5
         self.SP = 1
         self.exp = 0
-        self.max_exp = 0
+        self.max_exp = 20
         self.cash = 0
         self.learned_skills = []
         self.fight_actives = []
         self.fight_status = []
+        self.floors_beaten = 0
+        self.crit_multi = 225
         # Game
         self.X = 500
         self.Y = 600
@@ -116,14 +119,22 @@ class Player(object):
     def level_up(self):
         self.LV += 1
         self.AP = 5
-        self.SP += 1
+        if self.LV%5 == 0:
+            self.SP += 2
+        else:
+            self.SP += 1
         self.exp = 0
-        self.max_exp = (12+self.LV) * self.LV + 8*self.LV
+        self.max_exp = (9+self.LV) * self.LV + 11*self.LV
         
     def healFullHP(self):
         self.HP = self.maxHP
     def healFullMP(self):
         self.MP = self.maxMP
+    def rest(self):
+        if self.HP < round(self.maxHP/2):
+            self.HP = round(self.maxHP/2)
+        if self.MP < round(self.maxMP/2):
+            self.MP = round(self.maxMP/2)
     def restoreHP(self,amount):
         if self.HP + amount > self.maxHP:
             self.HP = self.maxHP
@@ -200,6 +211,7 @@ class Player(object):
         self.hit = self.hitU() + self.bonusHit
         self.dodge = self.dodgeU() + self.bonusDodge
         self.crit = self.critU() + self.bonusCrit
+        self.crit_multi = 225 + self.bonusCritMulti
         if self.rank_up_as_one:
             self.HP = 1
             self.maxHP = 1

@@ -2,17 +2,18 @@ import pygame
 from sounds import *
 from images import *
 from colors import *
-from class_player import *
-from class_items import *
-from class_action import *
-from class_jobs import *
-#from skills import *
+from player import *
+from items import *
+from actions import *
+from jobs import *
 from weapons import *
 from potions import *
 from utilities import *
 import random
 import math
 import time
+import shelve
+
 
 pygame.init()
 
@@ -30,6 +31,7 @@ enemy = 'some Enemy()'
 
 
 def skill_requirement(aSkill): ##### ALL SKILL REQUIREMENTS
+    if player.job == 'Mage':
         if isinstance(aSkill,Magical):
             if aSkill == fireball:
                 return player.LV >= 4 and ember.rank >= 3
@@ -79,105 +81,271 @@ def skill_requirement(aSkill): ##### ALL SKILL REQUIREMENTS
                 return True
         else:
             return True
+    elif player.job == 'Rogue':
+        if isinstance(aSkill,Magical) or isinstance(aSkill,Physical):
+            if aSkill == life_steal:
+                return player.LV >= 2
+            elif aSkill == critical:
+                return player.LV >= 9
+            elif aSkill == flash_bomb:
+                return player.LV >= 4
+            elif aSkill == swift:
+                return player.LV >= 7
+            else:
+                return True
+        elif isinstance(aSkill,Active):
+            if aSkill == blood_rit:
+                return player.LV >= 5
+            else:
+                return True
+        elif isinstance(aSkill,Passive):
+            if aSkill == cutthroat:
+                return player.LV >= 2
+            elif aSkill == dagshur_mast:
+                return player.LV >= 5
+            elif aSkill == dual_wield:
+                return player.LV >= 3
+            elif aSkill == fast_def:
+                return player.LV >= 7
+            else:
+                return True
+        else:
+            return True
+        
 
 def skillUpdate():
+    # attack skills
+    basic_attack.damage = player.damage
+    if dual_wield.rank > 0 and isinstance(player.lefthand,Weapon):
+        basic_attack.damage = round(player.damage/2)
+    basic_attack.mana = 0
     if player.job == 'Mage': # MAGE SKILLS
-        # attack skills
-        basic_attack.damage = player.damage
-        basic_attack.mana = 0
         ### Damage Skills
         # Fire
         ember.damage = round(80 + (player.mag_damage/1.8)*(1.8 * (1 + ember.rank)))
         ember.mana = round(50 + ember.damage/(17-ember.rank) + ember.rank * 35)
         ember.burn_chance = round(15 + 3*ember.rank + player.mag_damage/(25 + player.mag_damage/4))
+        ember.effdesc = ['Chance to inflict Burn: %i%%'%ember.burn_chance]
         fireball.damage = round(175*fireball.rank + ember.damage + (player.mag_damage/1.75)*(1.8 * (1 + fireball.rank)))
         fireball.mana = round(ember.mana + fireball.damage/(15-fireball.rank) + fireball.rank * 50)
         fireball.burn_chance = round(ember.burn_chance + 3*fireball.rank + player.mag_damage/(25 + player.mag_damage/4))
+        fireball.effdesc = ['Chance to inflict Burn: %i%%'%fireball.burn_chance]
         blaze.damage = round(325*blaze.rank + fireball.damage + (player.mag_damage/1.7)*(1.8 * (1 + blaze.rank)))
         blaze.mana = round(fireball.mana + blaze.damage/(15-blaze.rank) + blaze.rank * 125)
         blaze.burn_chance = round(fireball.burn_chance + 4*blaze.rank + player.mag_damage/(25 + player.mag_damage/4))
+        blaze.effdesc = ['Chance to inflict Burn: %i%%'%blaze.burn_chance]
         inferno.damage = round(450*inferno.rank + blaze.damage + (player.mag_damage/1.65)*(1.8 * (1 + inferno.rank)))
         inferno.mana = round(blaze.mana + inferno.damage/(15-inferno.rank) + inferno.rank * 210)
         inferno.burn_chance = round(blaze.burn_chance + 5*inferno.rank + player.mag_damage/(25 + player.mag_damage/4))
+        inferno.effdesc = ['Chance to inflict Burn: %i%%'%inferno.burn_chance]
         # Water
         shower.damage = round(88 + (player.mag_damage/1.7)*(1.85 * (1 + shower.rank)))
         shower.mana = round(45 + shower.damage/(20-shower.rank) + shower.rank * 25)
         shower.hit_chance = round(20 + 3.5*shower.rank)
+        shower.effdesc = ['Hit Chance: +%i%%'%shower.hit_chance]
         river.damage = round(200*river.rank + shower.damage + (player.mag_damage/1.65)*(1.85 * (1 + river.rank)))
         river.mana = round(shower.mana + river.damage/(20-river.rank) + river.rank * 60)
         river.hit_chance = round(shower.hit_chance + 3.5*river.rank)
+        river.effdesc = ['Hit Chance: +%i%%'%river.hit_chance]
         waterfall.damage = round(375*waterfall.rank + river.damage + (player.mag_damage/1.6)*(1.85 * (1 + waterfall.rank)))
         waterfall.mana = round(river.mana + waterfall.damage/(20-waterfall.rank) + waterfall.rank * 100)
         waterfall.hit_chance = round(river.hit_chance + 3.5*waterfall.rank)
+        waterfall.effdesc = ['Hit Chance: +%i%%'%waterfall.hit_chance]
         tsunami.damage = round(500*tsunami.rank + waterfall.damage + (player.mag_damage/1.5)*(1.85 * (1 + tsunami.rank)))
         tsunami.mana = round(waterfall.mana + tsunami.damage/(20-tsunami.rank) + tsunami.rank * 225)
         tsunami.hit_chance = round(waterfall.hit_chance + 3.5*tsunami.rank)
+        tsunami.effdesc = ['Hit Chance: +%i%%'%tsunami.hit_chance]
         # Wind
-        breeze.damage = round(70 + (player.mag_damage/2.1)*(1.6 * (1 + breeze.rank)))
-        breeze.mana = round(30 + breeze.damage/(23-breeze.rank) + breeze.rank * 20)
-        breeze.crit_chance = round(26 + 3*breeze.rank)
+        breeze.damage = round(76 + (player.mag_damage/2.0)*(2.1 * (1 + breeze.rank)))
+        breeze.mana = round(60 + breeze.damage/(23-breeze.rank) + breeze.rank * 20)
+        breeze.crit_chance = round(26 + 4*breeze.rank)
         breeze.hit_chance = round(-20 + 2*breeze.rank)
-        gust.damage = round(140*gust.rank + breeze.damage + (player.mag_damage/2.0)*(1.65 * (1 + gust.rank)))
+        breeze.effdesc = ['Crit Chance: +%i%%, Hit Chance: %i%%'%(breeze.crit_chance,breeze.hit_chance)]
+        gust.damage = round(140*gust.rank + breeze.damage + (player.mag_damage/2.0)*(2.2 * (1 + gust.rank)))
         gust.mana = round(breeze.mana + gust.damage/(23-gust.rank) + gust.rank * 40)
         gust.crit_chance = round(breeze.crit_chance + 3*gust.rank)
         gust.hit_chance = round(breeze.hit_chance + 2*gust.rank)
-        whirlwind.damage = round(300*whirlwind.rank + gust.damage + (player.mag_damage/1.9)*(1.7 * (1 + whirlwind.rank)))
+        gust.effdesc = ['Crit Chance: +%i%%, Hit Chance: %i%%'%(gust.crit_chance,gust.hit_chance)]
+        whirlwind.damage = round(300*whirlwind.rank + gust.damage + (player.mag_damage/1.9)*(2.3 * (1 + whirlwind.rank)))
         whirlwind.mana = round(gust.mana + whirlwind.damage/(23-whirlwind.rank) + whirlwind.rank * 80)
         whirlwind.crit_chance = round(gust.crit_chance + 3*whirlwind.rank)
         whirlwind.hit_chance = round(gust.hit_chance + 1*whirlwind.rank)
-        tornado.damage = round(415*tornado.rank + whirlwind.damage + (player.mag_damage/1.8)*(1.8 * (1 + tornado.rank)))
+        whirlwind.effdesc = ['Crit Chance: +%i%%, Hit Chance: %i%%'%(whirlwind.crit_chance,whirlwind.hit_chance)]
+        tornado.damage = round(415*tornado.rank + whirlwind.damage + (player.mag_damage/1.8)*(2.4 * (1 + tornado.rank)))
         tornado.mana = round(whirlwind.mana + tornado.damage/(23-tornado.rank) + tornado.rank * 200)
         tornado.crit_chance = round(whirlwind.crit_chance + 3*tornado.rank)
         tornado.hit_chance = round(whirlwind.hit_chance + 1*tornado.rank)
+        tornado.effdesc = ['Crit Chance: +%i%%, Hit Chance: %i%%'%(tornado.crit_chance,tornado.hit_chance)]
         # Electric
         shock.damage = round(100 + (player.mag_damage/1.7)*(1.9 * (1 + shock.rank)))
         shock.mana = round(60 + shock.damage/(14-shock.rank) + shock.rank * 50)
         shock.para_chance = round(20 + 3*shock.rank + player.mag_damage/(25 + player.mag_damage/4))
         shock.crit_chance = round(14 + 3*shock.rank)
+        shock.effdesc = ['Chance to Paralyze: %i%%, Crit Chance: +%i%%'%(shock.para_chance,shock.crit_chance)]
         thunderbolt.damage = round(250*thunderbolt.rank + shock.damage + (player.mag_damage/1.6)*(2 * (1 + thunderbolt.rank)))
         thunderbolt.mana = round(shock.mana + thunderbolt.damage/(14-thunderbolt.rank) + thunderbolt.rank * 60)
         thunderbolt.para_chance = round(shock.para_chance + 3*thunderbolt.rank + player.mag_damage/(25 + player.mag_damage/3.8))
         thunderbolt.crit_chance = round(25 + 3*thunderbolt.rank)
+        thunderbolt.effdesc = ['Chance to Paralyze: %i%%, Crit Chance: +%i%%'%(thunderbolt.para_chance,thunderbolt.crit_chance)]
         lightning.damage = round(425*lightning.rank + thunderbolt.damage + (player.mag_damage/1.5)*(2.1 * (1 + lightning.rank)))
         lightning.mana = round(thunderbolt.mana + lightning.damage/(14-lightning.rank) + lightning.rank * 100)
         lightning.para_chance = round(thunderbolt.para_chance + 3*lightning.rank + player.mag_damage/(25 + player.mag_damage/3.6))
         lightning.crit_chance = round(35 + 2*lightning.rank)
+        lightning.effdesc = ['Chance to Paralyze: %i%%, Crit Chance: +%i%%'%(lightning.para_chance,lightning.crit_chance)]
         thunderstorm.damage = round(525*thunderstorm.rank + lightning.damage + (player.mag_damage/1.4)*(2.2 * (1 + thunderstorm.rank)))
         thunderstorm.mana = round(lightning.mana + thunderstorm.damage/(14-thunderstorm.rank) + thunderstorm.rank * 200)
         thunderstorm.para_chance = round(lightning.para_chance + 4*thunderstorm.rank + player.mag_damage/(25 + player.mag_damage/3.4))
         thunderstorm.crit_chance = round(42 + 2*thunderstorm.rank)
+        thunderstorm.effdesc = ['Chance to Paralyze: %i%%, Crit Chance: +%i%%'%(thunderstorm.para_chance,thunderstorm.crit_chance)]
         ### Actives (has unique detail)
         mana_gaurd.mana = round(75*mana_gaurd.rank + (player.MP*0.25)/(mana_gaurd.rank+1))
         mana_gaurd.cooldown = 5
-        mana_gaurd.detail = 'CD: %i, Mana Cost: %i'%(mana_gaurd.cooldown,mana_gaurd.mana)
-        restore.hp = round(100+restore.rank*5 + player.maxHP/(10 - restore.rank/3) + player.mag_damage*0.5/player.maxHP)
+        mana_gaurd.turnEnd = 5
+        mana_gaurd.effdesc = ['For 5 turns, when recieving damage from enemy,','your Current Mana takes the damage instead'\
+                              ,'of your HP. When no MP is available,','damage is applied normally','',\
+                              'Cooldown: %i Turns, Mana Cost: %i'%(mana_gaurd.cooldown,mana_gaurd.mana)]
+        restore.hp = round(150+restore.rank*50 + player.maxHP/(8 - restore.rank) + player.mag_damage*0.5/player.maxHP)
         restore.bonus_stat = round(player.mag_damage/99 + restore.rank*6.5)
         restore.cooldown = 3
+        restore.turnEnd = 3
         restore.mana = round(50 + player.mag_damage*0.6*(1 - restore.rank/20))
-        restore.detail = 'HP: +%i, Luck/Hit/Crit: +%i, CD: %i, Mana Cost: %i'%(restore.hp,restore.bonus_stat,restore.cooldown,restore.mana)
+        restore.effdesc = ['For 3 turns, gain Luck/Hit/Crit: +%i'%restore.bonus_stat,\
+                          'and restore HP: +%i'%(restore.hp),'',\
+                          'Cooldown: %i Turns, Mana Cost: %i'%(restore.cooldown,restore.mana)]
         barrier.shield = round(75 + barrier.rank*6 + player.mag_damage*(1.5+0.8*barrier.rank)*(1+barrier.rank/5))
         barrier.cooldown = 5
+        barrier.turnEnd = 3
         barrier.mana = round(60 + barrier.rank*50 + player.mag_damage*0.25)
-        barrier.detail = 'Shield Amount: %i, CD: %i, Mana Cost: %i'%(barrier.shield,barrier.cooldown,barrier.mana)
+        barrier.effdesc = ['For 3 turns, create a damage blocking shield.','Shield always takes damage first.','',\
+                           'Shield Amount: %i,'%barrier.shield,\
+                           'Cooldown: %i Turns, Mana Cost: %i'%(barrier.cooldown,barrier.mana)]
         meditate.scale = round(215 + (meditate.rank-1)*15)
         meditate.cooldown = 7 - meditate.rank
         meditate.mana = round(200 + player.maxMP/(15 + meditate.rank))
-        meditate.detail = 'Multiplier: %i%%, CD: %i, Mana Cost: %i'%(meditate.scale,meditate.cooldown,meditate.mana)
+        meditate.effdesc = ['The next Magical Damage Skill you cast','will deal massive damage.','',\
+                            'Multiplier: %i%%, Cooldown: %i Turns'%(meditate.scale,meditate.cooldown),\
+                           'Mana Cost: %i'%meditate.mana]
         ### Passives (has unique detail)
-        corpse_drain.bonus_chance = round(15+player.LV/5+6*corpse_drain.rank)
-        corpse_drain.detail = 'Activate chance: %i%%'%corpse_drain.bonus_chance
+        corpse_drain.bonus_chance1 = round(15+player.LV/5+6*corpse_drain.rank)
+        corpse_drain.bonus_chance2 = round(8+player.LV/2+4*corpse_drain.rank)
+        corpse_drain.restore_mp1 = 30+2*corpse_drain.rank
+        corpse_drain.restore_mp2 = 35+3*corpse_drain.rank
+        corpse_drain.effdesc = ['Whenever you defeat and enemy,',\
+                                'you have %i%% chance to gain %i%% of maxMP as MP'%(corpse_drain.bonus_chance1,corpse_drain.restore_mp1),\
+                                'Also whenever you cast a Damaging Skill,',\
+                                'you have a %i%% chance to gain %i%% of its cost'%(corpse_drain.bonus_chance2,corpse_drain.restore_mp2)]
         max_mp_inc.bonus = round((320 + 245*max_mp_inc.rank)*(1 + max_mp_inc.rank/65)) # each level gains amount
-        max_mp_inc.detail = 'Max MP: +%i'%(max_mp_inc.bonus)
-        magic_mast.bonus = 4
-        magic_mast.detail = 'Luck/Hit/Crit: +%i, Next rank: +%i'%(magic_mast.bonus*magic_mast.rank,magic_mast.bonus*(magic_mast.rank+1))
+        max_mp_inc.effdesc = ['Each time you Rank up this skill,',\
+                              'gain a set amount of Max MP permanantly.',''\
+                              'Gain Max MP: +%i'%(max_mp_inc.bonus)]
+        magic_mast.bonus = 6
+        magic_mast.effdesc = ['When wielding a Staff or a Wand,','',\
+                              'Luck/Hit/Crit: +%i, Next rank: +%i'%(magic_mast.bonus*magic_mast.rank,magic_mast.bonus*(magic_mast.rank+1))]
         mana_armor.bonus = round(player.maxMP/40)
-        mana_armor.detail = 'When ranked up, Armor/Resist: +%i instantly'%mana_armor.bonus
+        mana_armor.effdesc = ['Instantly gain Bonus Armor/Resist',\
+                              'based off your Current Maximum MP',''\
+                              'When ranked up, Armor/Resist: +%i instantly'%mana_armor.bonus]
         as_one.bonus = (player.stren*2 + player.maxHP)*3
+        as_one.effdesc = ['Permamantly set your Strength AND HP to 1',\
+                          'and gain bonus MP based off the difference',\
+                          'of your Strength and HP']
         if not player.rank_up_as_one:
-            as_one.detail = 'When ranked up, Max MP:  +%i'%as_one.bonus
+            as_one.effdesc = ['When ranked up, Max MP:  +%i'%as_one.bonus]
         else:
-            as_one.detail = 'You have gained, Max MP: +%i'%as_one.given_bonus
-
+            as_one.effdesc = ['You have gained, Max MP: +%i'%as_one.given_bonus]
+    elif player.job == 'Rogue': # ROGUE SKILL
+        #damaging
+        bleed.damage = round(35 + 8*bleed.rank + (player.damage/1.2)*(1.175 + bleed.rank/1.5))
+        bleed.mana = round(30 + bleed.damage/(17-bleed.rank) + bleed.rank * 35)
+        bleed.bleed_chance = round(15 + 3*bleed.rank + player.damage/(25 + player.mag_damage/4))
+        bleed.effdesc = ['Chance to inflict Bleed: %i%%'%bleed.bleed_chance]
+        cripple.damage = round(50 + 8*cripple.rank + (player.damage/1.3)*(1.1 + cripple.rank/2))
+        cripple.mana = round(60 + cripple.damage/(17-cripple.rank) + cripple.rank * 50)
+        cripple.cripple_chance = round(16 + 5*cripple.rank + player.damage/(25 + player.damage/4))
+        cripple.effdesc = ['Chance to inflict Cripple: %i%%'%cripple.cripple_chance]
+        life_steal.damage = round(40 + player.damage*(1+life_steal.rank*0.5))
+        life_steal.steal = 30+10*life_steal.rank
+        life_steal.mana = round(60 + life_steal.damage/(15-life_steal.rank) + life_steal.rank * 35)
+        life_steal.effdesc = ['Damage dealt will be restored as HP',''\
+                              'Damage Dealt: %i%% Restored'%life_steal.steal]
+        critical.crit_multi = 50*critical.rank
+        critical.damage = round(player.damage)
+        critical.mana = round(100 + critical.damage/(13-critical.rank) + critical.rank * 52)
+        critical.crit_chance = round(999)
+        critical.effdesc = ['Gaurentees crit and crit multiplier +%i%%'%critical.crit_multi]
+        mag_strike.damage = round(player.mag_damage + 30*mag_strike.rank + (player.mag_damage/1.17)*(1.6 + mag_strike.rank/2.4))
+        mag_strike.mana = round(35 + mag_strike.damage/(16-mag_strike.rank) + mag_strike.rank * 40)
+        mag_strike.effdesc = ['Deal Magic damage']
+        poison_strike.damage = round(player.mag_damage*(0.35+poison_strike.rank*0.06))
+        poison_strike.mana = round(45 + poison_strike.damage/(17-poison_strike.rank) + poison_strike.rank * 35)
+        poison_strike.poison_chance = round(56 + 4*poison_strike.rank + player.mag_damage/(25 + player.mag_damage/4))
+        poison_strike.effdesc = ['Chance to Poison: %i%%'%poison_strike.poison_chance]
+        flash_bomb.damage = round(35 + 65*flash_bomb.rank)
+        flash_bomb.mana = round(50 + flash_bomb.rank * 35)
+        flash_bomb.blind_chance = round(55 + 5*flash_bomb.rank)
+        flash_bomb.effdesc = ['Chance to blind enemy: %i%%'%flash_bomb.blind_chance]
+        swift.damage = round(75 + 20*swift.rank + (player.damage/2)*(1.6 + swift.rank/5))
+        swift.hit_chance = 999
+        swift.mana = round(75 + swift.damage/(17-swift.rank) + swift.rank * 25)
+        swift.effdesc = ['This skill cannot miss']
+        # Actives
+        stealth.mana = 100 + 100*stealth.rank
+        stealth.dodge_chance = round(43 + 7*stealth.rank)
+        stealth.crit_chance = round(47 + 6*stealth.rank)
+        stealth.crit_multi = round(25 + 10*stealth.rank)
+        stealth.cooldown = 5
+        stealth.turnEnd = 3
+        stealth.effdesc = ['Gain %i%% Dodge Chance for 3 Turns,'%stealth.dodge_chance,\
+                           'This effect ends when you attack.','',\
+                           'While still active, your next attack will have:',\
+                           'Critical Chance: +%i%% and Crit Multiplier: +%i%%'%(stealth.crit_chance,stealth.crit_multi),'',\
+                           'Cooldown: %i Turns, Mana Cost: %i'%(stealth.cooldown,stealth.mana)]
+        illusion.mana = 150 + 75*illusion.rank
+        illusion.dodge_chance = round(34 + 13*illusion.rank)
+        illusion.cooldown = 3
+        illusion.turnEnd = 2
+        illusion.effdesc = ['For 2 turns, gain %i%% Dodge Chance.'%illusion.dodge_chance,\
+                            'If no damage is taken during these 2 turns,',\
+                            '(does not include status effect damage)',\
+                            'inflict Confuse plus another random status','',\
+                            'Cooldown: %i Turns, Mana Cost: %i'%(illusion.cooldown,illusion.mana)]
+        intimidate.mana = 180 + 50*stealth.rank
+        intimidate.bonus_damage = round(10 + player.LV*(2*intimidate.rank) + 50*intimidate.rank)
+        intimidate.dodge_chance = round(13 + 12*intimidate.rank)
+        intimidate.effdesc = ['You and Enemy take %i Bonus Damage'%intimidate.bonus_damage,\
+                              'from any attack BUT gain %i%% Dodge Chance'%intimidate.dodge_chance,\
+                              '(scales with LV)','',\
+                              'Mana Cost: %i'%intimidate.mana]
+        blood_rit.mana = round(player.maxHP/20 + 100 + player.LV*200/(7-blood_rit.rank*1.3))
+        blood_rit.bonus = 5 + 25*blood_rit.rank
+        blood_rit.crit_chance = round(15 + blood_rit.mana/18) 
+        blood_rit.crit_multi = round(blood_rit.crit_chance/1.2)
+        blood_rit.effdesc = ["Lose %i HP to gain Str/Mag: +%i for 5 Turns"%(blood_rit.mana,blood_rit.bonus),\
+                             'Also, Crit Chance: +%i%%, Crit Multiplier: +%i%%'%(blood_rit.crit_chance,blood_rit.crit_multi),'',\
+                             'Mana Cost: %i'%blood_rit.mana]
+        # Passives
+        cutthroat.bonus_dmg = round((10 + (5*cutthroat.rank)*cutthroat.rank))
+        cutthroat.bonus_crit_multi = 15
+        cutthroat.effdesc = ['Any attack, Damage: +%i'%cutthroat.bonus_dmg,\
+                             'Crit Multiplier: +%i%%'%(cutthroat.bonus_crit_multi*cutthroat.rank)]
+        dagshur_mast.bonus = 6
+        dagshur_mast.effdesc = ['When a Wand or Staff is equipped,',
+                               'Agi/Luck/Hit/Crit: +%i, Next rank: +%i'%(dagshur_mast.bonus*dagshur_mast.rank,dagshur_mast.bonus*(dagshur_mast.rank+1))]
+        dual_wield.damage = 65
+        dual_wield.effdesc = ['Allows a Weapon to be equipped on the ',\
+                              'Left Hand. Basic Attacks now attack ',\
+                              'twice when a second weapon is equipped,',\
+                              'each dealing 50% of your total attack','',\
+                              'Left Hand Weapon ATK/MATK Bonus: %i%%'%dual_wield.damage]
+        fast_def.bonus = round(player.dodge*(5+7*fast_def.rank))
+        fast_def.effdesc = ['When ranked up,',\
+                            'gain Armor/Resist: +%i instantly.'%fast_def.bonus,'',\
+                            'Bonus is based of current Dodge Chance']
+        sneaky.bonus = 1 + player.LV
+        sneaky.effdesc = ['Chance for enemy to miss an attack: +%i%%'%sneaky.bonus,\
+                          'Does not increase Dodge Chance']
+        
+        
 class Enemy:
     def __init__(self, name, img, HP, MP, damage, mag_damage, armor, mag_armor, hit, dodge, crit, loot, exp):
         self.name = name
@@ -196,9 +364,10 @@ class Enemy:
         self.loot = loot
         self.exp = exp
         self.shield_hp = 0
+        self.crit_multi = 225
         ## SKILLS
-        self.basic = Physical('Basic Attack',None,None,'','','',0)
-        self.curse = Magical('Curse',None,'curse.wav','','','',0)
+        self.basic = Physical('Basic Attack',None,None,'','',0)
+        self.curse = Magical('Curse',None,'curse.wav','','',0)
         ## GENERAL
         self.fight_actives = []
         self.fight_status = []
@@ -214,13 +383,17 @@ class Enemy:
         
 def gameover():
     inSome.enter()
+    pygame.mixer.music.load('fail.mp3')
+    pygame.mixer.music.load('fail.mp3')
+    pygame.mixer.music.play(0)
+    pygame.mixer.music.play(0)
     while inSome.show:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quitGame()
         screen.fill(white)
         textbox('You Died! Try Again?',50,black,screenW/2,325)
-        textbox('(you will lose all money)',30,black,screenW/2,380)
+        textbox('(you will lose half of your money)',30,black,screenW/2,380)
         button('Yes',80,200,450,200,200,green,lightGreen,inSome.leave,None)
         button('No',80,650,450,200,200,red,lightRed,quitGame,None)
         pygame.display.update()
@@ -229,10 +402,35 @@ def gameover():
     time.sleep(0.5)
 
 def status_bar():
-    if player.shield_hp > 0 and inFight.show and not inInv.show and not inSome.show and not inSkill.show:
-        textbox('Shield: %i'%player.shield_hp,50,orange,500,650)
-    textbox(player.name,25,black,80+(len(player.name)*5),725)
-    textbox(('LV %i     HP  %i / %i   MP  %i / %i' %(player.LV,player.HP,player.maxHP,player.MP,player.maxMP)),40,black,610,725)
+    ### SHIELD BAR
+    if player.shield_hp > 0:
+        shield_perc = (player.shield_hp/barrier.shield)*100
+        pygame.draw.rect(screen, orange, (190,708 , 400/(100/round(shield_perc)),50)) # BAR
+        pygame.draw.rect(screen, lightOrange, (190,708 , 400,50), 4) # OUTLINE
+        textbox('Shield',40,black,245,730)
+        textbox('%i / %i'%(player.shield_hp,barrier.shield),40,black,420,730)
+    else:
+    #### HP BAR
+        hp_perc = round((player.HP/player.maxHP)*100)
+        if hp_perc == 0:
+            pygame.draw.rect(screen, red, (190,708 , 0,50)) # BAR
+        else:
+            pygame.draw.rect(screen, red, (190,708 , 400/(100/hp_perc),50)) # BAR
+        pygame.draw.rect(screen, lightestRed, (190,708 , 400,50), 4) # OUTLINE
+        textbox('HP',40,black,220,730)
+        textbox('%i / %i'%(player.HP,player.maxHP),40,black,400,730)
+    #### MP BAR
+    mp_perc = round((player.MP/player.maxMP)*100)
+    if mp_perc == 0:
+        pygame.draw.rect(screen, lightCyan, (604,708 , 0, 50)) # BAR
+    else:
+        pygame.draw.rect(screen, lightCyan, (604,708 , 400/(100/mp_perc),50)) # BAR
+    pygame.draw.rect(screen, cyan, (604,708 , 400,50),4 ) # OUTLINE
+    textbox('MP',40,black,635,730)
+    textbox('%i / %i'%(player.MP,player.maxMP),40,black,814,730)
+    ## LEVEL AND NAME
+    textbox('LV %i  %s'%(player.LV,player.job),25,black,95,717)
+    textbox(player.name,39-2*len(player.name),black,90,742)
 
 def intro():
     pygame.mixer.music.load('game/music/bgm_intro.mp3')
@@ -348,7 +546,12 @@ def stats():
         textbox(('AP (Ability Points) Available: %i' %player.AP),30,black,700,320)
         # Finished
         if player.AP == 0:
-            button('Continue',30,850,screenH/1.35,75,75,green,lightGreen,inSome.leave,None)
+            if boolButton('Continue',30,850,screenH/1.35,75,75,green,lightGreen):
+                inSome.leave()
+                player.old_stren = player.new_stren
+                player.old_intel = player.new_intel
+                player.old_agi = player.new_agi
+                player.old_luck = player.new_luck
         status_bar()
         pygame.display.update()
         clock.tick(15)
@@ -364,10 +567,9 @@ def job_select():
         if boolButton('Mage',40,85,275,250,250,blue,lightBlue):
             return Mage()
         if boolButton('Rogue',40,385,275,250,250,green,lightGreen):
-            textbox('Available Soon!',60,black,screenW/2,200)
-            #return Rouge()
+            return Rogue()
         if boolButton('Warrior',40,685,275,250,250,red,lightRed):
-                textbox('Available Soon!',60,black,screenW/2,200)
+            textbox('Available Soon!',60,black,screenW/2,200)
             #return Warrior()
         textbox('Mage: Excels with magic, high MP and Magical DMG but low HP, armor, and physical dmg',23,lightBlue,screenW/2,600)
         textbox('Rouge: Fast and sharp, high crit and dodge but low HP and defense',23,lightGreen,screenW/2,650)
@@ -384,32 +586,38 @@ def statsPage():
             if event.type == pygame.QUIT:
                 quitGame()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_2:
+                if event.key == pygame.K_2 or event.key == pygame.K_ESCAPE:
                     inSome.show = False
         screen.fill(cyan)
         status_bar()
         textbox('STATS',60,lightRed,screenW/2,40)
-        textbox('LV: %i'%player.LV,35,black,screenW/2,100)
-        textbox('Job: %s'%player.job,35,red,screenW/2,140)
-        textbox('Strength: %i + %i = %i'%(player.new_stren,player.bonusStren,player.stren),35,yellow,screenW/2,140+40)
-        textbox('Intelligence: %i + %i = %i'%(player.new_intel,player.bonusIntel,player.intel),35,yellow,screenW/2,180+40)
-        textbox('Agility: %i + %i = %i'%(player.new_agi,player.bonusAgi,player.agi),35,yellow,screenW/2,220+40)
-        textbox('Luck: %i + %i = %i'%(player.new_luck,player.bonusLuck,player.luck),35,yellow,screenW/2,260+40)
-        textbox('Max HP: %i + %i = %i'%(player.maxHPU(),player.bonusMaxHP,player.maxHP),35,red,screenW/2,300+40)
-        textbox('Max MP: %i + %i = %i'%(player.maxMPU(),player.bonusMaxMP,player.maxMP),35,blue,screenW/2,340+40)
-        textbox('Physical Damage: %i + %i = %i'%(player.damageU(),player.bonusPdmg,player.damage),35,red,screenW/2,300+120)
-        textbox('Magic Damage: %i + %i = %i'%(player.mag_damageU(),player.bonusMdmg,player.mag_damage),35,blue,screenW/2,340+120)
-        textbox('Armor: %i + %i = %i'%(player.armorU(),player.bonusArmor,player.armor),35,red,screenW/2,380+120)
-        textbox('Resist: %i + %i = %i'%(player.mag_armorU(),player.bonusMag_armor,player.mag_armor),35,blue,screenW/2,420+120)
-        textbox('Hit Rate: %i%% + %i%% = %i%%'%(player.hitU(),player.bonusHit,player.hit),35,red,screenW/2,460+120)
-        textbox('Dodge Chance: %i%% + %i%% = %i%%'%(player.dodgeU(),player.bonusDodge,player.dodge),35,blue,screenW/2,500+120)
-        textbox('Critical Chance: %i%% + %i%% = %i%%'%(player.critU(),player.bonusCrit,player.crit),35,red,screenW/2,540+120)
-        textbox('Experience: %i / %i'%(player.exp,player.max_exp),35,yellow,screenW/2,570+120)
-        textbox('''Press 2 to leave''',30,brown,875,screenH/2)
+        #
+        textbox('LV: %i'%player.LV,35,black,220,50)
+        textbox('Job: %s'%player.job,35,purple,220,90)
+        textbox('Strength: %i + %i = %i'%(player.new_stren,player.bonusStren,player.stren),35,red,220,130)
+        textbox('Intelligence: %i + %i = %i'%(player.new_intel,player.bonusIntel,player.intel),35,blue,220,170)
+        textbox('Agility: %i + %i = %i'%(player.new_agi,player.bonusAgi,player.agi),35,lighterGreen,220,210)
+        textbox('Luck: %i + %i = %i'%(player.new_luck,player.bonusLuck,player.luck),35,yellow,220,250)
+        #
+        textbox('Armor: %i + %i = %i'%(player.armorU(),player.bonusArmor,player.armor),35,red,220,320)
+        textbox('Resist: %i + %i = %i'%(player.mag_armorU(),player.bonusMag_armor,player.mag_armor),35,blue,220,360)
+        #
+        textbox('Max HP: %i + %i = %i'%(player.maxHPU(),player.bonusMaxHP,player.maxHP),35,red,700,170)
+        textbox('Max MP: %i + %i = %i'%(player.maxMPU(),player.bonusMaxMP,player.maxMP),35,blue,700,210)
+        textbox('Physical Damage: %i + %i = %i'%(player.damageU(),player.bonusPdmg,player.damage),35,red,700,300)
+        textbox('Magic Damage: %i + %i = %i'%(player.mag_damageU(),player.bonusMdmg,player.mag_damage),35,blue,700,340)
+        #
+        textbox('Hit Rate: %i%% + %i%% = %i%%'%(player.hitU(),player.bonusHit,player.hit),35,lighterGreen,450,430)
+        textbox('Dodge Chance: %i%% + %i%% = %i%%'%(player.dodgeU(),player.bonusDodge,player.dodge),35,blue,450,470)
+        textbox('Critical Chance: %i%% + %i%% = %i%%'%(player.critU(),player.bonusCrit,player.crit),35,red,450,530)
+        textbox('Critical Mutliplier: 225 + %i%% = %i%%'%(player.bonusCritMulti,225+player.bonusCritMulti),35,yellow,450,570)
+        #
+        textbox('Experience: %i / %i'%(player.exp,player.max_exp),35,yellow,450,640)
+        textbox('''Press 2 to leave''',30,brown,875,510)
         pygame.display.update()
         
 def checkEquip(slot):
-    if isinstance(slot,Weapon) and slot is not player.weapon and slot != player.weapon: # and player.weapon == fists
+    if isinstance(slot,Weapon) and slot is not player.weapon and slot != player.weapon and slot != player.lefthand: # and player.weapon == fists
         if isinstance(slot,Staff): # two handed weapon
             if player.lefthand != player.fap and player.lefthand != no_left:
                 player.loseItemBonus(player.lefthand)
@@ -420,20 +628,44 @@ def checkEquip(slot):
             if player.lefthand == no_left:
                 player.lefthand = player.fap
         if weapon_requirement(slot):
-            saved_item = None
-            if player.weapon != player.fists and slot != player.weapon: # if has weapon equipped already
-                saved_item = player.weapon
-                player.loseItemBonus(saved_item)
-            player.weapon = slot
-            player.addItemBonus(slot)
-            player.numItemInv -= 1
-            player.inv.remove(slot)
-            player.inv.append(None)
-            if saved_item != None:   # put weapon in inv
-                player.inv[player.numItemInv] = saved_item
-                player.numItemInv += 1
-            equip_sound.play()
-            time.sleep(0.3)
+            if player.job == 'Rogue' and dual_wield.rank > 0 and player.weapon != player.fists and slot != player.weapon and slot != player.lefthand:
+                saved_item = None
+                if player.lefthand != player.fap and slot != player.lefthand: # if has weapon equipped already
+                    saved_item = player.lefthand
+                    player.loseItemBonus(saved_item)
+                    # remove left hand weapon atk/matk
+                    player.bonusPdmg -= dual_wield.equip_bonus[0]
+                    player.bonusMdmg -= dual_wield.equip_bonus[1]
+                player.lefthand = slot
+                player.addItemBonus(slot)
+                ### add left hand weapon atk/matk
+                dual_wield.equip_bonus = [round((player.lefthand.damage*(1+player.stren/20))*(dual_wield.damage/100)),\
+                                          round((player.lefthand.mag_damage*(1+player.intel/20))*(dual_wield.damage/100))]
+                player.bonusPdmg += dual_wield.equip_bonus[0]
+                player.bonusMdmg += dual_wield.equip_bonus[1]
+                player.numItemInv -= 1
+                player.inv.remove(slot)
+                player.inv.append(None)
+                if saved_item != None:   # put weapon in inv
+                    player.inv[player.numItemInv] = saved_item
+                    player.numItemInv += 1
+                equip_sound.play()
+                time.sleep(0.3)
+            elif slot != player.lefthand:
+                saved_item = None
+                if player.weapon != player.fists and slot != player.weapon: # if has weapon equipped already
+                    saved_item = player.weapon
+                    player.loseItemBonus(saved_item)
+                player.weapon = slot
+                player.addItemBonus(slot)
+                player.numItemInv -= 1
+                player.inv.remove(slot)
+                player.inv.append(None)
+                if saved_item != None:   # put weapon in inv
+                    player.inv[player.numItemInv] = saved_item
+                    player.numItemInv += 1
+                equip_sound.play()
+                time.sleep(0.3)
         else:
             textbox('Requirements not met!',50,black,500,500)
     # remove weapon
@@ -444,6 +676,16 @@ def checkEquip(slot):
         player.inv[player.numItemInv] = player.weapon
         player.numItemInv += 1
         player.weapon = player.fists
+        equip_sound.play()
+    # remove lefthand weapons (ROGUE)
+    elif dual_wield.rank > 0 and slot is player.lefthand and player.lefthand != player.fap and player.numItemInv < player.numMaxItem:
+        player.loseItemBonus(slot)
+        #lose bonus
+        player.bonusPdmg -= dual_wield.equip_bonus[0]
+        player.bonusMdmg -= dual_wield.equip_bonus[1]
+        player.inv[player.numItemInv] = player.lefthand
+        player.numItemInv += 1
+        player.lefthand = player.fap
         equip_sound.play()
     # put body on
     elif isinstance(slot,Body) and slot is not player.body: #and player.body == shirt_jeans
@@ -485,7 +727,8 @@ def checkEquip(slot):
         wear.play()
         time.sleep(0.3)
     #remove l_hand
-    elif slot == player.lefthand and player.lefthand != player.fap and player.lefthand != no_left and slot not in player.inv and player.numItemInv < player.numMaxItem:
+    elif slot == player.lefthand and player.lefthand != player.fap and player.lefthand != no_left \
+         and slot not in player.inv and player.numItemInv < player.numMaxItem and isinstance(slot,Weapon):
         player.loseItemBonus(player.lefthand)
         player.inv[player.numItemInv] = player.lefthand
         player.numItemInv += 1
@@ -499,10 +742,10 @@ def checkEquip(slot):
             player.loseItemBonus(saved_item)
         player.head = slot
         player.addItemBonus(slot)
-        player.numItemInv -= 1
+        player.numItemInv -= status
         player.inv.remove(slot)
         player.inv.append(None)
-        if saved_item != None:   # put weapon in inv
+        if saved_item != None:   # put weapon in invtime.sleep(0.3)
             player.inv[player.numItemInv] = saved_item
             player.numItemInv += 1
         wear.play()
@@ -519,7 +762,7 @@ def checkEquip(slot):
         slot.activate_eff(player)
         potSound.play()
         time.sleep(0.3)
-    player.statUpdate()
+##    player.statUpdate()
     skillUpdate()
     trimExtraHPMP()
 
@@ -536,15 +779,15 @@ def slotButton(slot,x,y,w,h):
         if slot != None:
             if skill_requirement(slot):
                 if x+w > mouse[0] > x and y+h > mouse[1] > y:  # show box and highlight when mouse hovers over
-                    pygame.draw.rect(screen, green, (x,y,w,h))
+                    pygame.draw.rect(screen, lightGrey, (x,y,w,h))
                 else:
-                    pygame.draw.rect(screen, lightGreen, (x,y,w,h))
+                    pygame.draw.rect(screen, skyBlue, (x,y,w,h))
             else:
                 if x+w > mouse[0] > x and y+h > mouse[1] > y:  # show box and highlight when mouse hovers over
                     pygame.draw.rect(screen, orange, (x,y,w,h))
                 else:
                     pygame.draw.rect(screen, brown, (x,y,w,h))
-    elif inFight.show and not inInv.show: # some reason when using skill the boxes show up so i use this to not show boxes after using skill (?????????????????)
+    elif inFight.show and not inInv.show: 
         # i know why the boxes show up its bcuz enemy attack overlaps screen and then closes :(, must put enemy attack in the (fight() while loop)
         if slot != None:
             if x+w > mouse[0] > x and y+h > mouse[1] > y:  # show box and highlight when mouse hovers over
@@ -582,13 +825,13 @@ def slotButton(slot,x,y,w,h):
                                         time.sleep(0.16)
                                         skillUpdate()
                                         if isinstance(slot,Passive):
-                                            slot.giveBonus()
+                                            slot.giveBonus(player)
                                             player.statUpdate()
                                             skillUpdate()
                                     else:
-                                        textbox('Skill at max rank!',35,blue,800,235)
+                                        textbox('Skill at max rank!',35,blue,800,304)
                                 else:
-                                    textbox('Requirements not met!',35,blue,800,235)
+                                    textbox('Requirements not met!',35,blue,800,304)
                             elif slot in player.learned_skills:
                                 if not slot.rank == slot.maxRank:    
                                     slot.rank += 1
@@ -601,15 +844,15 @@ def slotButton(slot,x,y,w,h):
                                         player.statUpdate()
                                         skillUpdate()
                                 else:
-                                    textbox('Skill at max rank!',35,blue,800,235)
+                                    textbox('Skill at max rank!',35,blue,800,304)
                             else:
-                                textbox('Maximum number of skills learned!',35,blue,800,235)
+                                textbox('Maximum number of skills learned!',35,blue,800,304)
                         else:
                             if  slot != None and not skill_requirement(slot):
-                                textbox('Requirements not met!',35,blue,800,235)
+                                textbox('Requirements not met!',35,blue,800,304)
                             elif slot != None:
-                                    textbox('Not enough SP!',50,blue,800,235)
-                elif pygame.mouse.get_pressed()[2] and inLearnSkill and slot != None: # Remove a skill
+                                    textbox('Not enough SP!',35,blue,800,304)
+                elif pygame.mouse.get_pressed()[2] and inLearnSkill.show and slot != None: # Remove a skill
                     removeSkill(slot)
             else: # inFight use skill
                 if slot != None:
@@ -619,19 +862,19 @@ def slotButton(slot,x,y,w,h):
                             if slot.cooldownEnd <= fightText.turn:
                                 del slot.cooldownEnd
                             else:
-                                textbox('On cooldown! %i Turns Left'%(slot.cooldownEnd - fightText.turn),30,blue,800,235)
+                                textbox('On cooldown! %i Turns Left'%(slot.cooldownEnd - fightText.turn),30,blue,800,304)
                         elif player.MP - slot.mana < 0: # check if player has enough mana
-                            textbox('Not enough MP!',50,blue,800,235)
+                            textbox('Not enough MP!',35,blue,800,304)
                         else:
                             if isinstance(slot,Active):
                                 if slot in player.fight_actives:
-                                    textbox('Already active!',50,blue,800,235)
+                                    textbox('Already active!',35,blue,800,304)
                                 else:
                                     dmg_calc(slot)
-                            elif isinstance(slot,Passive):
-                                textbox('Cannot use Passive!',50,blue,800,235)
                             else:
                                 dmg_calc(slot) # regular attack
+                            player.statUpdate()
+                            skillUpdate()
         elif inInv.show:
             if slot != None:
                 itemValue(slot)
@@ -681,7 +924,7 @@ def removeSkill(slot):
                     sound = pygame.mixer.Sound('game/sounds/buy.wav')
                     sound.play()
                     asking = False
-                elif event.key == pygame.K_e:
+                elif event.key == pygame.K_e or event.key == pygame.K_ESCAPE:
                     asking = False
         textbox('Remove this skill?',65,black,screenW/2,200)
         textbox('(You can relearn it by ranking it up)',65,black,screenW/2,440)
@@ -710,7 +953,7 @@ def sellItem(slot):
                     sound = pygame.mixer.Sound('game/sounds/buy.wav')
                     sound.play()
                     want = False
-                elif event.key == pygame.K_e:
+                elif event.key == pygame.K_e or event.key == pygame.K_ESCAPE:
                     want = False
         textbox('Are you sure you want to sell this?',65,black,screenW/2,200)
         textbox('%s'%slot.name,80,blue,screenW/2,315)
@@ -734,10 +977,10 @@ def addItem(item):
 def buyItem(slot):
     if slot != None:
         if player.cash < slot.cost:
-            if inStore:
+            if inStore.show:
                 textbox('Not enough gold!',30,blue,775,425)
-            elif inHosp:
-                textbox('Not enough gold!',30,blue,825,175)
+            elif inHosp.show:
+                textbox('Not enough gold!',40,blue,835,180)
         else:
             want = True
             while want:
@@ -751,7 +994,7 @@ def buyItem(slot):
                             addItem(slot)
                             buySound.play()
                             want = False
-                        elif event.key == pygame.K_e:
+                        elif event.key == pygame.K_e or event.key == pygame.K_ESCAPE:
                             want = False
                 textbox('Are you sure you want to buy this?',65,black,screenW/2,200)
                 textbox('%s'%slot.name,80,red,screenW/2,315)
@@ -777,17 +1020,19 @@ def itemValue(slot):
                 y += 35
     elif inSkill.show or inLearnSkill.show:
             textbox(slot.name,75,black,800,100)
-            textbox(slot.desc,30,black,800,175)
-            textbox('Rank: %i/%i (%s)'%(slot.rank,slot.maxRank,slot.type),40,black,800,300)
-            if isinstance(slot,Physical):
-                textbox('Physical Damage: %i, Mana Cost: %i'%(slot.damage,slot.mana),25,black,800,400)
-            elif isinstance(slot,Magical):
-                textbox('Magic Damage: %i, Mana Cost: %i'%(slot.damage,slot.mana),25,black,800,400)
-            elif isinstance(slot,Active) or isinstance(slot,Passive): # actives have unique detail
-                textbox('%s'%(slot.detail),20,black,800,400)
-            textbox(slot.effdesc,20,black,800,475)
+            textbox(slot.desc,30,black,800,170)
             if len(slot.requiredesc) != 0:
-                textbox('Requirement(s):  (%s)'%slot.requiredesc,16,black,800,540)
+                textbox('Requirement(s):  (%s)'%slot.requiredesc,16,black,800,210)
+            textbox('Rank: %i/%i (%s)'%(slot.rank,slot.maxRank,slot.type),40,black,800,250)
+            y = 0
+            for line in range(len(slot.effdesc)):
+                textbox(slot.effdesc[line],20,black,800,350+y)
+                y += 25 
+            if isinstance(slot,Physical):
+                textbox('Physical Damage: %i, Mana Cost: %i'%(slot.damage,slot.mana),25,black,800,390+y)
+            elif isinstance(slot,Magical):
+                textbox('Magic Damage: %i, Mana Cost: %i'%(slot.damage,slot.mana),25,black,800,390+y)
+                    
     elif inInv.show:
         if isinstance(slot,Weapon):
             textbox('ATK: %i/MATK: %i Cost: $%i'%(slot.damage,slot.mag_damage,slot.cost),35,black,300,430)
@@ -829,9 +1074,9 @@ def learnedSkillsPage():
             if event.type == pygame.QUIT:
                 quitGame()
             elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_3 and inFight:
+                    if event.key == pygame.K_3 and inFight or event.key == pygame.K_ESCAPE:
                         leaveLearnSkill()
-        screen.fill(grey)
+        screen.fill(skyBlue)
         textbox('Learned Skills',60,black,280,50)
         if player.learned_skills[0] == None:
             textbox('Learn skills by ranking them up using SP!',50,black,screenW/2,screenH/2)
@@ -855,28 +1100,27 @@ def skillsPage():
             if event.type == pygame.QUIT:
                 quitGame()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_3:
+                if event.key == pygame.K_3 or event.key == pygame.K_ESCAPE:
                     inSkill.show = False
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_a:
-                        if pg_num - 1 >= 0:
-                            pg_num -= 1
-                            pg_flip.play()
-                    elif event.key == pygame.K_d:
-                        if pg_num + 1 <= len(mage_skills_pg) - 1:
-                            pg_num += 1
-                            pg_flip.play()
-        screen.fill(grey)
+        screen.fill(skyBlue)
+        if pg_num - 1 >= 0:
+            if boolButton('',0,13,47,35,35,lightGrey,skyBlue):
+                pg_num -= 1
+                pg_flip.play()
+            screen.blit(small_arrow_left,centerIMG(30,30,30,65))
+        if pg_num + 1 <= len(mage_skills_pg) - 1:
+            if boolButton('',0,528,47,35,35,lightGrey,skyBlue):
+                pg_num += 1
+                pg_flip.play()
+            screen.blit(small_arrow_right,centerIMG(30,30,545,65))
         textbox('%s Skills'%player.job,60,black,280,50)
         if player.job == 'Mage':
             matrixSlot(4,4,mage_skills_pg[pg_num],40,125,140,140)
+        elif player.job == 'Rogue':
+                matrixSlot(4,4,rogue_skills_pg[pg_num],40,125,140,140)
         textbox('SP: %i'%player.SP,50,black,905,630)
         textbox('Press 3 to leave',20,black,300,680)
         button('Learned Skills',30,660,575,100,100,red,lightRed,learnedSkillsPage,None)
-        if pg_num - 1 >= 0:
-            screen.blit(small_arrow_left,centerIMG(30,30,25,75))
-        if pg_num + 1 <= len(mage_skills_pg) - 1:
-            screen.blit(small_arrow_right,centerIMG(30,30,550,75))
         status_bar()
         pygame.display.update()
 
@@ -885,11 +1129,20 @@ def enemyAttack():
     fight_shown_text = []
     enemy.updateSkill()
     used_skill = enemy.randSkill()
-    if not enemy.isPara:
+    if enemy.isPara or enemy.isConf:
+        if enemy.isPara:
+            fight_shown_text.append(["Enemy can't move!",lightYellow])
+        elif enemy.isConf:
+            fight_shown_text.append(["Enemy is confused!",orange])
+        fightText.addText(fight_shown_text)
+        pygame.display.update()
+    else:
         if enemy.MP - used_skill.mana < 0:
-            used_skill = basic_attack
+            used_skill = enemy.basic
         damage = Action.skillAttack(enemy, player,used_skill)
         if damage != None:
+            if illusion in player.fight_actives:
+                illusion.notHit = False
             fight_shown_text.append(['Enemy uses %s'%used_skill.name,black])
             if enemy.didCrit:
                 fight_shown_text.append(['Enemy critically strikes!',blue])
@@ -900,14 +1153,20 @@ def enemyAttack():
                 fight_shown_text.append(['Enemy deals %i magical damage'%(damage),red])
             # Status
             status_eff  = used_skill.status_effect(player)
-            if status_eff == st_burn:
-                fight_shown_text.append(['You are burned!',orange])
-            elif status_eff == st_para:
-                fight_shown_text.append(['You are paralyzed!',yellow])
-            elif status_eff == st_curse:
-                fight_shown_text.append(['You are cursed!',brown])
+            if status_eff != None:
+                fight_shown_text.append(status_eff.text)
         else:
             fight_shown_text.append(['Enemy Misses!',orange])
+            # illusion activate
+            if illusion in player.fight_actives and illusion.notHit and illusion.turnEnd == fightText.turn:
+                player.fight_actives.remove(illusion)
+                enemy.fight_status.append(st_conf)
+                fight_shown_text.append(st_conf.text)
+                random_status = random.choice(allStatus)
+                enemy.fight_status.append(random_status)
+                fight_shown_text.append(random_status.text)
+                illusion.loseEffect(player)
+            ###
         for status in player.fight_status:
             if status == st_burn:
                 burn_damage = status_calc(st_burn,player)
@@ -919,28 +1178,28 @@ def enemyAttack():
                 fight_shown_text.append(['You take %i curse damage'%curse_damage,lightRed])
         fightText.addText(fight_shown_text)
         pygame.display.update()
-    else:
-        fight_shown_text.append(["Enemy can't move!",lightYellow])
-        fightText.addText(fight_shown_text)
-        pygame.display.update()
+
 
 def fakeFight():
     screen.fill(white)
-    textbox('%s'%enemy.name,40,black,800,175)
-    textbox('HP: %i'%(enemy.HP),45,lightRed,800,520)
-    textbox('MP: %i'%(enemy.MP),45,lightBlue,800,580)
-    button('Attack',35,25,350,100,100,green,lightGreen,doNone,None)
-    button('Skills',35,150,350,100,100,red,lightRed,doNone,None)
-    button('Run',30,275,375,75,75,red,lightRed,doNone,None)
-    screen.blit(player.img,(425,355))
-    screen.blit(enemy.img, centerIMG(255,255,800,350))
-    textbox('Turn: %i'%(fightText.turn),25,black,330,340)
+    # Enemy Details
+    screen.blit(enemy.img, centerIMG(255,255,800,175))
+    textbox('%s'%enemy.name,40,black,800,340)
+    textbox('HP: %i'%(enemy.HP),45,lightRed,800,395)
+    textbox('MP: %i'%(enemy.MP),45,lightBlue,800,455)
+    ###
+    button('Attack',30,25,25,75,75,green,lightGreen,doNone,None)
+    button('Skills',30,25,125,75,75,lightCyan,cyan,doNone,None)
+    button('Run',30,25,225,75,75,red,lightRed,doNone,None)
+    textbox('Turn: %i'%(fightText.turn),25,black,60,340)
+    screen.blit(player.img,(325,150))
     showActivesAndStatus()
     status_bar()
 
+
 def status_calc(status,victim):
     if status == st_burn:
-        burn_damage = round(victim.maxHP/10 - random.choice(range(round(10 + victim.maxHP/100))) + random.choice(range(10 + round(victim.maxHP/80))))
+        burn_damage = round(victim.maxHP/10 - random.choice(range(round(victim.maxHP/100))) + random.choice(range(10 + round(victim.maxHP/80))))
         victim.HP -= burn_damage
         return burn_damage
     elif status == st_para:
@@ -949,9 +1208,28 @@ def status_calc(status,victim):
         else:
             victim.isPara = False
     elif status == st_curse:
-        curse_damage = round(victim.maxHP/20 - random.choice(range(round(10 +  victim.maxHP/75))) + random.choice(range(10 + round(victim.maxHP/80)))) 
+        curse_damage = round(victim.maxHP/20 + random.choice(range(10 + round(victim.maxHP/80)))) 
         victim.HP -= curse_damage
         return curse_damage
+    elif status == st_bleed:
+        bleed_damage = round(victim.maxHP/8 + random.choice(range(10 + round(victim.maxHP/80))))
+        victim.HP -= bleed_damage
+        return bleed_damage
+    elif status == st_poison:
+        poison_damage = round(victim.maxHP/4 + random.choice(range(10 + round(victim.maxHP/80))))
+        victim.HP -= poison_damage
+        return poison_damage
+    elif status == st_conf:
+        chance = random.choice(range(2)) == 0
+        if chance:
+            enemy.isConf = True
+            conf_damage = round(random.choice(range(10 + round(victim.maxHP*0.25))))
+        else:
+            enemy.isConf = False
+            conf_damage = None
+        return conf_damage
+    else:
+        return None
     
 def dmg_calc(used_skill):
     leaveLearnSkill()
@@ -959,7 +1237,9 @@ def dmg_calc(used_skill):
     fightText.pg_num = fightText.pages
     fight_shown_text = []
     success_run = None
+    ### Reset status 
     enemy.isPara = False
+    enemy.isConf = False
     if used_skill == 'run': # Run
         fight_shown_text.append(['You are trying to run away...',black])
         success_run = runChance()
@@ -984,20 +1264,43 @@ def dmg_calc(used_skill):
                 fight_shown_text.append(['You deal %i physical damage'%damage,red])
             # Status
             status_eff  = used_skill.status_effect(enemy)
-            if status_eff == st_burn:
-                fight_shown_text.append(['You burned the enemy!',orange])
-            elif status_eff == st_para:
-                fight_shown_text.append(['You paralyzed the enemy!',yellow])
+            if status_eff != None:
+                fight_shown_text.append(status_eff.text)
         else:
             fight_shown_text.append(['You Missed!',blue])
+        #### DUAL WIELD ATTACK #####
+        if player.job == 'Rogue' and dual_wield.rank > 0 and used_skill == basic_attack and isinstance(player.lefthand,Weapon):
+            fight_shown_text.append(['You use %s (Left)'%used_skill.name,black])
+            damage = Action.skillAttack(player,enemy,used_skill)
+            if damage != None:
+                if player.didCrit:
+                    fight_shown_text.append(['You critically strike!',blue])
+                    crit.play()
+                if isinstance(used_skill,Magical):
+                    fight_shown_text.append(['You deal %i magical damage'%damage,red])
+                else: #isinstance(used_skill,Physical)
+                    fight_shown_text.append(['You deal %i physical damage'%damage,red])
+                # Status
+                status_eff  = used_skill.status_effect(enemy)
+                if status_eff != None:
+                    fight_shown_text.append(status_eff.text)
+            else:
+                fight_shown_text.append(['You Missed!',blue])
+    #################    
     elif isinstance(used_skill,Active):
         fight_shown_text.append(['You use %s'%used_skill.name,black])
         Action.skillActive(player,enemy,used_skill)
+        Active.effect(used_skill,player)
+        player.statUpdate()
+        if hasattr(used_skill,'turnEnd'):
+                used_skill.setTurnEnd(fightText.turn,used_skill.turnEnd)
+        if hasattr(used_skill,'cooldown'):
+                used_skill.setCooldownEnd(fightText.turn,used_skill.cooldown)
     elif isinstance(used_skill,Potion):
         fight_shown_text.append(['You use %s'%used_skill.name,black])
         used_skill.activate_eff(player)
         potSound.play()
-    # status effects (status should be last effect that happens)
+    # status effects (status damage should be last effect that happens)
     for status in enemy.fight_status:
         if status == st_burn:
             burn_damage = status_calc(st_burn,enemy)
@@ -1007,12 +1310,22 @@ def dmg_calc(used_skill):
         elif status == st_curse:
             curse_damage = status_calc(st_curse,enemy)
             fight_shown_text.append(['Enemy takes %i curse damage'%curse_damage,lightRed])
+        elif status == st_bleed:
+            bleed_damage = status_calc(st_bleed,enemy)
+            fight_shown_text.append(['Enemy takes %i bleed damage'%bleed_damage,lightRed])
+        elif status == st_poison:
+            poison_damage = status_calc(st_poison,enemy)
+            fight_shown_text.append(['Enemy takes %i bleed damage'%poison_damage,purple])
+        elif status == st_conf:
+            conf_damage = status_calc(st_conf,enemy)
+            if conf_damage != None:
+                fight_shown_text.append(['Enemy hurts itself for %i damage'%conf_damage,orange])
     if enemy.HP <= 0:
         fight_shown_text.append(['You have defeated the enemy!',brown])
     # refresh
     fakeFight()
     fightText.addText(fight_shown_text)
-    fightText.showText([27,27,28,32,37,45],350,0,25,50)
+    fightText.showText([27,27,28,32,37,45],screenW/2,0,400,50)
     pygame.display.update()
     time.sleep(1.1)
     # counter attack
@@ -1022,8 +1335,8 @@ def dmg_calc(used_skill):
 
 def checkActiveDuration():
     for skill in player.fight_actives:
-        if hasattr(skill,'turnEnd') and fightText.turn == skill.turnEnd:
-            skill.loseEffect()
+        if hasattr(skill,'turnEnd') and fightText.turn >= skill.turnEnd:
+            skill.loseEffect(player)
             player.fight_actives.remove(skill)
 
 def level_up_greet():
@@ -1036,6 +1349,75 @@ def level_up_greet():
     pygame.display.update()
     time.sleep(1.75)
 
+
+def pickFloor():
+    inSome.enter()
+    pygame.mixer.music.load('game/music/adventure.mp3')
+    pygame.mixer.music.play(-1)
+    while inSome.show:
+        screen.fill(blue)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quitGame()
+        if boolButton('Leave',20,25,600,100,100,red,lightRed):
+            inSome.leave()
+            return None
+        floor_lv_require = [0,4,4,8,8,11,13,13,16,16]
+        y = 0
+        for floor in range(10):
+            if player.LV >= floor_lv_require[floor]:
+                if floor + 1 == 3:
+                    if player.floors_beaten >= 1:
+                        if boolButton('Floor %i'%(floor+1),25,screenW/2-275,675-y,175,50,green,lightGreen):
+                            inSome.leave()
+                            return floor
+                    else:
+                        if boolButton('Floor %i'%(floor+1),25,screenW/2-275,675-y,175,50,orange,brown):
+                            textbox('Need to clear: Floor %i to enter!'%(floor),45,cyan,725,screenH/2)
+                elif floor + 1 == 5:
+                    if player.floors_beaten >= 2:
+                        if boolButton('Floor %i'%(floor+1),25,screenW/2-275,675-y,175,50,green,lightGreen):
+                            inSome.leave()
+                            return floor
+                    else:
+                        if boolButton('Floor %i'%(floor+1),25,screenW/2-275,675-y,175,50,orange,brown):
+                            textbox('Need to clear: Floor %i to enter!'%(floor),45,cyan,725,screenH/2)
+                elif floor + 1 == 8:
+                    if player.floors_beaten >= 3:
+                        if boolButton('Floor %i'%(floor+1),25,screenW/2-275,675-y,175,50,green,lightGreen):
+                            inSome.leave()
+                            return floor
+                    else:
+                        if boolButton('Floor %i'%(floor+1),25,screenW/2-275,675-y,175,50,orange,brown):
+                            textbox('Need to clear: Floor %i to enter!'%(floor),45,cyan,725,screenH/2)
+                elif floor + 1 == 10:
+                    if player.floors_beaten >= 4:
+                        if boolButton('Floor %i'%(floor+1),25,screenW/2-275,675-y,175,50,green,lightGreen):
+                            inSome.leave()
+                            return floor
+                    else:
+                        if boolButton('Floor %i'%(floor+1),25,screenW/2-275,675-y,175,50,orange,brown):
+                            textbox('Need to clear: Floor %i to enter!'%(floor),45,cyan,725,screenH/2)
+                else:
+                    if boolButton('Floor %i'%(floor+1),25,screenW/2-275,675-y,175,50,green,lightGreen):
+                        inSome.leave()
+                        return floor
+            else:
+                if boolButton('Floor %i'%(floor+1),25,screenW/2-275,675-y,175,50,orange,brown):
+                    textbox('Need to be LV: %i to enter!'%floor_lv_require[floor],45,cyan,725,screenH/2)
+            y += 70
+##            dungeon_floor =
+##                    1 [[alec,sungmin,kaelan],\ 
+##                    2 [huoniao],\
+##                    3 [aneal,avery,ryan,tina],\
+##                    4 [clean_booga],\
+##                    5 [alicky,sunger,brownitron,jihoon,yoonho],\
+##                    6 [minji,clara,greasy_avery,michael],\
+##                    7 [clavery],\
+##                    8 [laluche,dyonghae,greasy_booga,flower_minji],\
+##                    9 [booga_cat],\
+##                    10 [king_booga]]
+        pygame.display.update()
 def fight():
     global enemy
     fightText.turn = 0
@@ -1049,35 +1431,79 @@ def fight():
     player.shield_hp = 0
     resetCooldown()
     #Enemy(self, name, img, HP,MP, damage,mag_damage, armor,mag_armor, hit,dodge,crit, loot,exp):
-    #Low level mobs
-    alec = Enemy('Alec','alec.png',300,130, 70,100, 25,40, 95,5,5, 50,12)
-    sungmin = Enemy('Sungmin','sungmin.png',400,500, 80,55, 25,25, 95,5,4, 50,14)
-    kaelan = Enemy('Kaelan','kaelan.png',425,40, 85,25, 40,10, 95,5,4, 60,16)
-    #Medium level mobs
-    alicky = Enemy('Alicky','alec.png',1500,500, 180,250, 175,125, 90,5,5, 125,100)
-    sunger = Enemy('Sunger Munger','sungmin.png',1635,1000, 115,200, 150,150, 92,5,5, 135,125)
-    brownitron = Enemy('Brownitron','kaelan.png',1825,400, 130,125, 200,200, 87,5,4, 150,150)
-    ryan = Enemy('Ryan','ryan.png',1369,7, 500,10, 0,0, 120,60,50, 175,125)
-    tina = Enemy('Tina','tina.png',2000,1000, 50,100, 200,175, 85,10,6, 200,100)
-    #High level mobs
-    laluche = Enemy('La Lucha Libre','ryan.png',5000,0, 800,10, 0,0, 150,60,75, 400,150)
-    dyonghae = Enemy('Dyonghae','tina.png',7500,4000, 400,1200, 700,900, 95,5,5, 200,300)
-    greasy_booga = Enemy('Greasy Booga','greasy_booga.png',10500,1200, 800,600, 800,800, 85,20,20, 500,300)
-    # Choose random enemy
-    if player.LV < 5:
-        enemy = random.choice([alec,sungmin,kaelan])
-    elif player.LV < 11:
-        enemy = random.choice([ryan,brownitron,sunger,alicky,tina])
-    else:
-        enemy = random.choice([laluche,dyonghae,greasy_booga])
+    if not fightText.stillFight:
+        fightText.floor = pickFloor()
+    # Floor 1
+    alec = Enemy('Alec','alec.png',325,130, 110,110, 20,40, 95,5,5, 50,12)
+    sungmin = Enemy('Sungmin','sungmin.png',425,500, 80,130, 25,25, 95,5,4, 50,14)
+    kaelan = Enemy('Kaelan','kaelan.png',450,110, 100,100, 40,10, 95,5,4, 60,16)
+    # Boss 2
+    huoniao = Enemy('Huoniao','huoniao.png', 1000,600, 300,150, 60,70, 80,8,8, 200,100)
+    # Floor 3
+    aneal = Enemy('Aneal','aneal.png', 900,200, 200,70, 50,40, 95,5,5, 90,28)
+    avery = Enemy('Avery','avery.png', 1400,50, 160,30, 20,20, 95,5,5, 150,19)
+    ryan = Enemy('Ryan','ryan.png',700,10, 300,11, -70,-70, 110,40,20, 100,55)
+    tina = Enemy('Tina','tina.png',800,600, 40,275, 30,60, 100,4,4, 100,30)
+    # Boss 4
+    clean_booga = Enemy('Clean Booga','clean_booga.png',2250,500, 325,225, 70,70, 85,8,8, 300,150)
+    # Floor5
+    alicky = Enemy('Alicky','alec.png',1700,500, 375,375, 80,100, 90,5,5, 125,100)
+    sunger = Enemy('Sunger Munger','sungmin.png',1900,1000, 140,425, 80,150, 92,5,5, 135,125)
+    brownitron = Enemy('Brownitron','kaelan.png',2400,400, 180,125, 110,200, 87,5,4, 150,150)
+    jihoon = Enemy('Jihoon','jihoon.png',1000,7, 250,10, -100,-100, 80,90,0, 175,125)
+    yoonho = Enemy('Yoonho','yoonho.png',1500,2000, 70,400, 135,160, 85,10,6, 200,100)
+    # Floor 6
+    minji = Enemy('Minji','minji.png',2050,650, 400,200, 125,175, 95,7,7,  250,200)
+    clara = Enemy('Clara','clara.png',1500,300, 500,278, 95,125, 85,11,11, 200,250)
+    greasy_avery = Enemy('Greasy Avery','greasy_avery.png',3250,500, 275,100, 70,90, 95,5,5, 300,225)
+    michael = Enemy('Michael','michael.png',1750,600, 225,125, 175,125, 80,10,10, 200,250)
+    # Boss 7
+    clavery = Enemy('Clavery','clavery.png',3750,400, 375,300, 120,120, 75,17,16, 500,500)
+    # Floor 8
+    laluche = Enemy('La Lucha Libre','ryan.png',3000,0, 800,10, -300,-300, 150,60,75, 400,150)
+    dyonghae = Enemy('Dyonghae','tina.png',6800,4000, 400,1200, 400,750, 95,5,5, 200,300)
+    greasy_booga = Enemy('Greasy Booga','greasy_booga.png',7600,1200, 800,600, 400,400, 85,20,20, 500,300)
+    flower_minji = Enemy('Flower Minji','flower_minji.png',7000,1500, 550,500, 475,325, 90,10,10, 450,450)
+    # Boss 9
+    booga_cat = Enemy("Booga's Cat",'booga_cat.png',4000,800, 1000,750, 0,0, 125,65,30, 1750,1000)
+    # Final Boss 10
+    king_booga = Enemy('King Booga','king_booga.png',19369,8000, 1350,1000, 700,1000, 100,20,20, 2000,2500)
+                     # Floor 1 
+    dungeon_floor = [[alec,sungmin,kaelan],\
+                     # Floor 2 BOSS
+                     [huoniao],\
+                     # Floor 3 
+                     [aneal,avery,ryan,tina],\
+                     # Floor 4 Boss
+                     [clean_booga],\
+                     # Floor 5  
+                     [alicky,sunger,brownitron,jihoon,yoonho],\
+                     # Floor 6 
+                     [minji,clara,greasy_avery,michael],\
+                     # Floor 7 BOSS
+                     [clavery],\
+                     # Floor 8 
+                     [laluche,dyonghae,greasy_booga,flower_minji],\
+                     # Floor 9 BOSS
+                     [booga_cat],\
+                     # Floor 10 BOSS
+                     [king_booga]]
+
     ### Music
-    pygame.mixer.music.load(random.choice(['game/music/bgm_fight1.mp3','game/music/bgm_fight2.mp3','game/music/bgm_fight3.mp3',\
-                                           'game/music/bgm_fight4.mp3','game/music/bgm_fight5.mp3','game/music/bgm_fight6.mp3','game/music/bgm_fight7.mp3']))
+    if fightText.floor == 1 or fightText.floor == 3 or fightText.floor ==6 or fightText.floor == 8 or fightText.floor == 9:
+        pygame.mixer.music.load('game/music/boss.mp3')
+    else:
+        pygame.mixer.music.load(random.choice(['game/music/bgm_fight1.mp3','game/music/bgm_fight2.mp3','game/music/bgm_fight3.mp3',\
+                                               'game/music/bgm_fight4.mp3','game/music/bgm_fight5.mp3','game/music/bgm_fight6.mp3','game/music/bgm_fight7.mp3']))
     pygame.mixer.music.play(-1)
     ##############################
-    inFight.show = True
+    if fightText.floor == None:
+        leaveFight()
+    else:
+        enemy = random.choice(dungeon_floor[fightText.floor])
+        inFight.enter()
     time.sleep(0.5)
-    while inFight.show: 
+    while inFight.show:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quitGame()
@@ -1086,21 +1512,35 @@ def fight():
                     inventory()
                 elif event.key == pygame.K_2:
                     statsPage()
-                elif event.key == pygame.K_a:
-                    if fightText.pg_num - 1 >= 0:
-                        fightText.pg_num -= 1
-                        pg_flip.play()
-                elif event.key == pygame.K_d:
-                    if fightText.pg_num + 1 < fightText.pages+1:
-                        fightText.pg_num += 1
-                        pg_flip.play()
         if player.run_away:
+            for aSkill in player.fight_actives:
+                Active.loseEffect(aSkill,player)
+            player.statUpdate()
+            trimExtraHPMP()
             leaveFight()
         elif enemy.HP <= 0:
+            ### BOSS FLOORS ###
+            if fightText.floor +1 == 2:
+                if player.floors_beaten == 0:
+                    player.floors_beaten += 1
+            if fightText.floor +1 == 4:
+                if player.floors_beaten == 1:
+                    player.floors_beaten += 1
+            if fightText.floor +1 == 7:
+                if player.floors_beaten == 2:
+                    player.floors_beaten += 1
+            if fightText.floor +1 == 9:
+                if player.floors_beaten == 3:
+                    player.floors_beaten += 1
             player.cash += enemy.loot
             player.exp += enemy.exp
-            if corpse_drain.bonus_chance >= random.choice(range(101)):
-                    player.MP += round(player.maxMP*.20)
+            for aSkill in player.fight_actives:
+                Active.loseEffect(aSkill,player)
+            player.statUpdate()
+            trimExtraHPMP()
+            # Corpse Drain
+            if isinstance(player,Mage) and corpse_drain.bonus_chance1 >= random.choice(range(101)):
+                    player.MP += round(corpse_drain.restore_mp1*player.maxMP)
                     trimExtraHPMP()
             if player.exp >= player.max_exp:
                 level_up_greet()
@@ -1114,79 +1554,84 @@ def fight():
                 fightAgain()
         elif player.HP <= 0:
             gameover()
-        # refresh
+        # refresh8
         screen.fill(white)
-        textbox('%s'%enemy.name,40,black,800,175)
-        textbox('HP: %i'%(enemy.HP),45,lightRed,800,520)
-        textbox('MP: %i'%(enemy.MP),45,lightBlue,800,580)
-        button('Attack',35,25,350,100,100,green,lightGreen,dmg_calc,basic_attack)
-        button('Skills',35,150,350,100,100,red,lightRed,learnedSkillsPage,None)
-        button('Run',30,275,375,75,75,red,lightRed,dmg_calc,'run')
-        screen.blit(player.img,(425,355))
-        screen.blit(enemy.img, centerIMG(255,255,800,350))
-        textbox('Turn: %i'%(fightText.turn),25,black,330,340)
+        # Enemy Details
+        screen.blit(enemy.img, centerIMG(255,255,800,175))
+        textbox('%s'%enemy.name,40,black,800,340)
+        textbox('HP: %i'%(enemy.HP),45,lightRed,800,395)
+        textbox('MP: %i'%(enemy.MP),45,lightBlue,800,455)
+        ###
+        button('Attack',30,25,25,75,75,green,lightGreen,dmg_calc,basic_attack)
+        button('Skills',30,25,125,75,75,lightCyan,cyan,learnedSkillsPage,None)
+        button('Run',30,25,225,75,75,red,lightRed,dmg_calc,'run')
+        screen.blit(player.img,(325,150))
+        textbox('Turn: %i'%(fightText.turn),25,black,60,340)
         if fightText.pg_num - 1 >= 0:
-            screen.blit(small_arrow_left,centerIMG(30,30,60,150))
-        if fightText.pg_num + 1 < fightText.pages+1:
-            screen.blit(small_arrow_right,centerIMG(30,30,600,150))
-        fightText.showText([27,27,28,32,37,45],350,0,25,50)
+            if boolButton('',0,233,533,35,35,green,lightGreen):
+                fightText.pg_num -= 1
+                pg_flip.play()
+            screen.blit(small_arrow_left,centerIMG(30,30,250,550))
+        if fightText.pg_num + 1 < fightText.pages + 1:
+            if boolButton('',0,734,533,35,35,green,lightGreen):
+                fightText.pg_num += 1
+                pg_flip.play()
+            screen.blit(small_arrow_right,centerIMG(30,30,750,550))
+        fightText.showText([27,27,28,32,37,45],screenW/2,0,400,50)
         showActivesAndStatus()
         status_bar()
         ###
         pygame.display.update()
         clock.tick(60)
-
+        
 def resetCooldown():
-    for skill in [mana_gaurd,restore,barrier,meditate]:
+    for skill in [mana_gaurd,restore,barrier,meditate,stealth,illusion,intimidate,blood_rit]:
         skill.delCooldownEnd()
 
 def showActivesAndStatus():
-    x = 0
+    y = 0
     for skill in player.fight_actives:
-        screen.blit(skill.img,centerIMG(80,80,50+x,525))
-        x += 100
-    x = 0
+        screen.blit(skill.img,(125,25+y))
+        y += 100
     for status in player.fight_status:
-        screen.blit(status,centerIMG(80,80,50+x,650))
-        x += 100
-    x = 0
+        screen.blit(status.img,(125,25+y))
+        y += 100
+    y = 0
     for skill in enemy.fight_actives:
-        screen.blit(skill.img,centerIMG(80,80,700+x,525))
-        x += 100
-    x = 0
+        screen.blit(skill.img,(935,25+y))
+        y += 100
     for status in enemy.fight_status:
-        screen.blit(status,centerIMG(80,80,700+x,650))
-        x += 100
+        screen.blit(status.img,(935,25+y))
+        y += 100
 
 
 def fightAgain():
-    for aSkill in player.fight_actives:
-        Active.loseEffect(aSkill)
     while inFight.show:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quitGame()
         screen.fill(white)
-        textbox('Gained $%i and %i EXP'%(enemy.loot,enemy.exp),45,black,screenW/2,200)
+        textbox('Cash gained: +$%i'%(enemy.loot),50,black,screenW/2,125)
+        textbox('EXP gained: +%i'%(enemy.exp),50,black,screenW/2,225)
         textbox('Keep exploring the dungeon?',50,black,screenW/2,325)
-        button('Yes',80,200,450,200,200,green,lightGreen,fight,None)
+        if boolButton('Yes',80,200,450,200,200,green,lightGreen):
+            fightText.stillFight = True
+            fight()
         button('No',80,650,450,200,200,red,lightRed,leaveFight,None)
         status_bar()
         pygame.display.update()
 
 def leaveFight():
     inFight.show = False
-    for aSkill in player.fight_actives:
-        Active.loseEffect(aSkill)
     player.X = 800
     pygame.mixer.music.stop()
     pygame.mixer.music.load('game/music/bgm_home.mp3')
     pygame.mixer.music.play(-1)
 
 def runChance():
-    chance = 100
-    chance -= round(enemy.HP/15)  + enemy.damage*3 - player.LV*75 - player.damage*4 - player.mag_damage*4
-    success_run = chance >= random.choice(range(101))
+    chance = enemy.HP/enemy.maxHP - 10
+    chance -= player.agi + player.LV
+    success_run = round(chance) <= random.choice(range(101))
     return success_run
 
 def shop():
@@ -1201,7 +1646,7 @@ def shop():
             if event.type == pygame.QUIT:
                 quitGame()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_e:
+                if event.key == pygame.K_e or event.key == pygame.K_ESCAPE:
 ##                    pygame.mixer.music.load('bgm_home.mp3')
 ##                    pygame.mixer.music.play(-1)
                     inStore.show = False
@@ -1252,7 +1697,7 @@ def inventory():
             if event.type == pygame.QUIT:
                 quitGame()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_1:
+                if event.key == pygame.K_1 or event.key == pygame.K_ESCAPE:
                     inInv.show = False
                 if event.key == pygame.K_2:
                     statsPage()
@@ -1276,12 +1721,17 @@ def hospital():
             if event.type == pygame.QUIT:
                 quitGame()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_e:
+                if event.key == pygame.K_e or event.key == pygame.K_ESCAPE:
                     inHosp.show = False
         textbox('Cash: %i'%player.cash,40,yellow,140,175)
         matrixSlot(6,3,hospital_pots,150,300,125,125)
         textbox('(Potions are usable in battle)',20,black,300,675)
         textbox('Press E to leave',20,black,800,675)
+        if boolButton('Rest',25,50,46,50,50,green,lightGreen):
+            player.rest()
+            potSound.play()
+            time.sleep(0.4)
+        textbox('When low on HP/MP, click Rest to restore HP/MP',10,black,107,27)
         status_bar()
         pygame.display.update()
 
@@ -1299,7 +1749,8 @@ def setInv():
         player.inv.append(None)
     if player.job == 'Mage':
         addItem(basic_wand)
-
+    if player.job == 'Rogue':
+        addItem(basic_dag)
 
 def game_loop():
     clock.tick(60)
@@ -1314,15 +1765,15 @@ def game_loop():
     # player coordinates
     player.X = 500
     player.Y = 600
-    player.W = player.img.get_rect()[2]
-    player.H = player.img.get_rect()[3]
+    player.W = 90
+    player.H = 90
     player.Xchange = 0
     player.Ychange = 0
     player.direction = 0
     # restore HP/MP upon starting and give some starting cash
     player.healFullHP()
     player.healFullMP()
-    player.cash = 1000000
+    player.cash = 125
     play = True
     pygame.mixer.music.load('game/music/bgm_home.mp3')
     pygame.mixer.music.play(-1)
@@ -1338,9 +1789,9 @@ def game_loop():
             if event.type == pygame.QUIT:
                 quitGame()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_p:
-                    pygame.display.toggle_fullscreen()
-                elif event.key == pygame.K_a:
+##                if event.key == pygame.K_p:
+##                    pygame.display.toggle_fullscreen()
+                if event.key == pygame.K_a:
                     player.img = rotate_img(player.direction,2,player.img)
                     player.direction = 2
                     player.Xchange = -5
@@ -1382,22 +1833,237 @@ def game_loop():
         if player.X > screenW - 100:
             pygame.mixer.music.stop()
             timer = 650
+            fightText.stillFight = False
             fight()
             player.Xchange = 0
             player.Ychange = 0
         #refresh
         # buy heal
+        
         elif (player.X + 30 >= 470 and player.X <= 576) and (player.Y+30 >= 485 and player.Y <= 556):
             textbox('You can heal and buy potions here. Press E to enter.',30,red,screenW/2,250)
         # shop
         elif (player.X + 30 >= 87 and player.X <= 215) and (player.Y+30 >= 132 and player.Y <= 265):
             textbox('You can buy stuff here. Press E to shop.',30,black,screenW/2,250)
         screen.blit(player.img,centerIMG(player.W,player.H,player.X,player.Y))
+        button('Save',40,25,25,50,50,red,lightRed,saveGame,None)
+        status_bar()
+        pygame.display.update() 
+
+def showStats():
+    inSkill.enter()
+    time.sleep(0.2)
+    while inSkill.show:
+        screen.fill(grey)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quitGame()
+        textbox('STATS',60,lightRed,screenW/2,40)
+        #
+        textbox('LV: %i'%player.LV,35,black,220,50)
+        textbox('Job: %s'%player.job,35,purple,220,90)
+        textbox('Strength: %i + %i = %i'%(player.new_stren,player.bonusStren,player.stren),35,red,220,130)
+        textbox('Intelligence: %i + %i = %i'%(player.new_intel,player.bonusIntel,player.intel),35,blue,220,170)
+        textbox('Agility: %i + %i = %i'%(player.new_agi,player.bonusAgi,player.agi),35,lighterGreen,220,210)
+        textbox('Luck: %i + %i = %i'%(player.new_luck,player.bonusLuck,player.luck),35,yellow,220,250)
+        #
+        textbox('Armor: %i + %i = %i'%(player.armorU(),player.bonusArmor,player.armor),35,red,220,320)
+        textbox('Resist: %i + %i = %i'%(player.mag_armorU(),player.bonusMag_armor,player.mag_armor),35,blue,220,360)
+        #
+        textbox('Max HP: %i + %i = %i'%(player.maxHPU(),player.bonusMaxHP,player.maxHP),35,red,700,170)
+        textbox('Max MP: %i + %i = %i'%(player.maxMPU(),player.bonusMaxMP,player.maxMP),35,blue,700,210)
+        textbox('Physical Damage: %i + %i = %i'%(player.damageU(),player.bonusPdmg,player.damage),35,red,700,300)
+        textbox('Magic Damage: %i + %i = %i'%(player.mag_damageU(),player.bonusMdmg,player.mag_damage),35,blue,700,340)
+        #
+        textbox('Hit Rate: %i%% + %i%% = %i%%'%(player.hitU(),player.bonusHit,player.hit),35,lighterGreen,450,430)
+        textbox('Dodge Chance: %i%% + %i%% = %i%%'%(player.dodgeU(),player.bonusDodge,player.dodge),35,blue,450,470)
+        textbox('Critical Chance: %i%% + %i%% = %i%%'%(player.critU(),player.bonusCrit,player.crit),35,red,450,530)
+        textbox('Critical Mutliplier: 225 + %i%% = %i%%'%(player.bonusCritMulti,225+player.bonusCritMulti),35,lighterYellow,450,570)
+        #
+        textbox('Experience: %i / %i'%(player.exp,player.max_exp),35,lighterYellow,450,640)
+        textbox('Cash: $%i'%(player.cash),35,lighterYellow,450,606)
+        textbox('SAVE GAME?',40,blue,890,560)
+        if boolButton('YES',25,screenW/2+300,600,75,75,red,lightRed):
+            actualSave()
+            heal.play()
+            time.sleep(0.5)
+            inSkill.leave()
+        if boolButton('NO',25,screenW/2+400,600,75,75,red,lightRed):
+            inSkill.leave()
+            
+        status_bar()
+        pygame.display.update()
+        
+
+def actualSave():
+        shelfFile = shelve.open('saved_game')
+        shelfFile['name'] = player.name
+        shelfFile['job'] = player.job
+        shelfFile['date'] = time.localtime()
+        # Attributes
+        shelfFile['new_stren'] = player.new_stren 
+        shelfFile['new_intel'] = player.new_intel 
+        shelfFile['new_agi'] = player.new_agi 
+        shelfFile['new_luck'] = player.new_luck 
+        shelfFile['stren'] = player.stren 
+        shelfFile['intel'] = player.intel 
+        shelfFile['agi'] = player.agi
+        shelfFile['luck'] = player.luck 
+        shelfFile['old_stren'] = player.old_stren
+        shelfFile['old_intel'] = player.old_intel 
+        shelfFile['old_agi'] = player.old_agi 
+        shelfFile['old_luck'] = player.old_luck 
+        # Bonus
+        shelfFile['HP'] = player.HP
+        shelfFile['MP'] = player.MP
+        shelfFile['bonusStren'] = player.bonusStren 
+        shelfFile['bonusIntel'] = player.bonusIntel 
+        shelfFile['bonusAgi'] = player.bonusAgi 
+        shelfFile['bonusLuck'] = player.bonusLuck 
+        shelfFile['bonusMaxHP'] = player.bonusMaxHP 
+        shelfFile['bonusMaxMP'] = player.bonusMaxMP 
+        shelfFile['bonusPdmg'] = player.bonusPdmg 
+        shelfFile['bonusMdmg'] = player.bonusMdmg 
+        shelfFile['bonusArmor'] = player.bonusArmor 
+        shelfFile['bonusMag_armor'] = player.bonusMag_armor
+        shelfFile['bonusHit'] = player.bonusHit
+        shelfFile['bonusDodge'] = player.bonusDodge 
+        shelfFile['bonusCrit'] = player.bonusCrit
+        shelfFile['bonusCritMulti'] = player.bonusCritMulti
+        shelfFile['weapon'] = player.weapon
+        shelfFile['lefthand'] = player.lefthand
+        shelfFile['head'] = player.head
+        shelfFile['body'] = player.body
+        # General
+        shelfFile['LV'] = player.LV 
+        shelfFile['SP'] = player.SP
+        shelfFile['exp'] = player.exp 
+        shelfFile['max_exp'] = player.max_exp
+        sellValue = 0
+        for item in player.inv:
+            if item != None:
+                sellValue += item.cost
+        for item in [player.weapon,player.body,player.lefthand]:
+            if item != None:
+                sellValue += item.cost
+        shelfFile['cash'] = player.cash + sellValue
+        shelfFile['learned_skills'] = player.learned_skills
+        shelfFile['fight_actives'] = player.fight_actives 
+        shelfFile['fight_status'] = player.fight_status 
+        shelfFile['floors_beaten'] = player.floors_beaten 
+        shelfFile['crit_multi'] = player.crit_multi
+        # Special Skills
+        shelfFile['rank_up_as_one'] = player.rank_up_as_one
+        shelfFile.close()
+
+def loadGame():
+    shelfFile = shelve.open('saved_game')
+    player.name = shelfFile['name']
+    player.job = shelfFile['job'] 
+    # Attributes
+    player.new_stren = shelfFile['new_stren']
+    player.new_intel = shelfFile['new_intel']
+    player.new_agi  = shelfFile['new_agi']
+    player.new_luck  = shelfFile['new_luck']
+    player.stren  = shelfFile['stren']
+    player.intel = shelfFile['intel']
+    player.agi = shelfFile['agi']
+    player.luck  = shelfFile['luck']
+    player.old_stren = shelfFile['old_stren']
+    player.old_intel  = shelfFile['old_intel']
+    player.old_agi = shelfFile['old_agi']
+    player.old_luck = shelfFile['old_luck'] 
+    # Bonus
+    player.HP = shelfFile['HP']
+    player.MP = shelfFile['MP']
+    player.bonusStren = shelfFile['bonusStren'] 
+    player.bonusIntel  = shelfFile['bonusIntel'] 
+    player.bonusAgi  = shelfFile['bonusAgi'] 
+    player.bonusLuck = shelfFile['bonusLuck'] 
+    player.bonusMaxHP  = shelfFile['bonusMaxHP']
+    player.bonusMaxMP  = shelfFile['bonusMaxMP'] 
+    player.bonusPdmg  = shelfFile['bonusPdmg'] 
+    player.bonusMdmg  = shelfFile['bonusMdmg'] 
+    player.bonusArmor  = shelfFile['bonusArmor'] 
+    player.bonusMag_armor = shelfFile['bonusMag_armor'] 
+    player.bonusHit = shelfFile['bonusHit'] 
+    player.bonusDodge  = shelfFile['bonusDodge'] 
+    player.bonusCrit = shelfFile['bonusCrit'] 
+    player.bonusCritMulti = shelfFile['bonusCritMulti'] 
+    player.weapon = player.fists #shelfFile['weapon']
+    player.lefthand = player.fap#shelfFile['lefthand'] 
+    player.head = player.china_hat#shelfFile['head'] 
+    player.body = player.shirt_jeans#shelfFile['body'] 
+    # General
+    player.LV = shelfFile['LV'] 
+    player.SP = shelfFile['SP']
+    player.exp = shelfFile['exp']
+    player.max_exp = shelfFile['max_exp']
+    player.cash  = shelfFile['cash']
+    player.learned_skills = shelfFile['learned_skills']
+    player.fight_actives  = shelfFile['fight_actives']
+    player.fight_status  = shelfFile['fight_status']
+    player.floors_beaten  = shelfFile['floors_beaten'] 
+    player.crit_multi = shelfFile['crit_multi']
+    setInv()
+    # Special Skills
+    player.rank_up_as_one = shelfFile['rank_up_as_one'] 
+    shelfFile.close()
+    player.statUpdate()
+    skillUpdate()
+
+def askLoad():
+    inSkill.enter()
+    shelfFile = shelve.open('saved_game')
+    while inSkill.show:
+        screen.fill(lime)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quitGame()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    loadGame()
+                    heal.play()
+                    time.sleep(0.2)
+                    inSkill.leave()
+                elif event.key == pygame.K_e or event.key == pygame.K_ESCAPE:
+                    inSkill.leave()
+        textbox('Do you want to load this save?',65,black,screenW/2,200)
+        textbox('%i,%i,%i   %ihr:%imin:%isec'%(shelfFile['date'][0],shelfFile['date'][1],shelfFile['date'][2],\
+                               shelfFile['date'][3],shelfFile['date'][4],shelfFile['date'][5]),80,red,screenW/2,315)
+        textbox('Press (Q: Yes /E: No)',65,black,screenW/2,550)
         status_bar()
         pygame.display.update()
 
+def saveGame():
+    inSome.enter()
+    time.sleep(0.2)
+    pygame.mixer.music.load('game/music/save.mp3')
+    pygame.mixer.music.play(-1)
+    while inSome.show:
+        screen.fill(grey)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quitGame()
+        if boolButton('Save',25,50,50,100,100,red,lightRed):
+            showStats()
+        textbox('When loading your save, your items will be sold for full price',35,black,screenW/2,250)
+        if boolButton('Leave',25,100,400,75,75,red,lightRed):
+            pygame.mixer.music.load('game/music/bgm_home.mp3')
+            pygame.mixer.music.play(-1)
+            inSome.leave()
+        if boolButton('Load',25,200,50,100,100,red,lightRed):
+            askLoad()
+            
+        status_bar()
+        pygame.display.update()
+    
+
+    
+            
+
 # Main
-intro()
+##intro()
 player = job_select()
 enter_name()
 stats()

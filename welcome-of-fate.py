@@ -1434,15 +1434,15 @@ def fight():
     if not fightText.stillFight:
         fightText.floor = pickFloor()
     # Floor 1
-    alec = Enemy('Alec','alec.png',325,130, 110,110, 20,40, 95,5,5, 50,12)
-    sungmin = Enemy('Sungmin','sungmin.png',425,500, 80,130, 25,25, 95,5,4, 50,14)
-    kaelan = Enemy('Kaelan','kaelan.png',450,110, 100,100, 40,10, 95,5,4, 60,16)
+    alec = Enemy('Alec','alec.png',325,130, 90,110, 20,40, 95,5,5, 50,12)
+    sungmin = Enemy('Sungmin','sungmin.png',425,500, 70,130, 25,25, 95,5,4, 50,14)
+    kaelan = Enemy('Kaelan','kaelan.png',450,110, 80,100, 40,10, 95,5,4, 60,16)
     # Boss 2
-    huoniao = Enemy('Huoniao','huoniao.png', 1000,600, 300,150, 60,70, 80,8,8, 200,100)
+    huoniao = Enemy('Huoniao','huoniao.png', 1000,600, 275,150, 60,70, 80,8,8, 200,100)
     # Floor 3
-    aneal = Enemy('Aneal','aneal.png', 900,200, 200,70, 50,40, 95,5,5, 90,28)
-    avery = Enemy('Avery','avery.png', 1400,50, 160,30, 20,20, 95,5,5, 150,19)
-    ryan = Enemy('Ryan','ryan.png',700,10, 300,11, -70,-70, 110,40,20, 100,55)
+    aneal = Enemy('Aneal','aneal.png', 900,200, 180,70, 50,40, 95,5,5, 90,28)
+    avery = Enemy('Avery','avery.png', 1400,50, 140,30, 20,20, 95,5,5, 150,19)
+    ryan = Enemy('Ryan','ryan.png',600,10, 300,11, -70,-70, 110,40,20, 100,55)
     tina = Enemy('Tina','tina.png',800,600, 40,275, 30,60, 100,4,4, 100,30)
     # Boss 4
     clean_booga = Enemy('Clean Booga','clean_booga.png',2250,500, 325,225, 70,70, 85,8,8, 300,150)

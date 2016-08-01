@@ -13,6 +13,7 @@ import random
 import math
 import time
 import shelve
+import os.path
 
 
 pygame.init()
@@ -383,8 +384,9 @@ class Enemy:
         
 def gameover():
     inSome.enter()
-    pygame.mixer.music.load('fail.mp3')
-    pygame.mixer.music.load('fail.mp3')
+    pygame.mixer.music.stop()
+    pygame.mixer.music.load('game/music/fail.mp3')
+    pygame.mixer.music.load('game/music/fail.mp3')
     pygame.mixer.music.play(0)
     pygame.mixer.music.play(0)
     while inSome.show:
@@ -399,7 +401,7 @@ def gameover():
         pygame.display.update()
     player.healFullHP()
     player.cash = round(player.cash/2)
-    time.sleep(0.5)
+    time.sleep(0.3)
 
 def status_bar():
     ### SHIELD BAR
@@ -1434,11 +1436,11 @@ def fight():
     if not fightText.stillFight:
         fightText.floor = pickFloor()
     # Floor 1
-    alec = Enemy('Alec','alec.png',325,130, 90,110, 20,40, 95,5,5, 50,12)
-    sungmin = Enemy('Sungmin','sungmin.png',425,500, 70,130, 25,25, 95,5,4, 50,14)
-    kaelan = Enemy('Kaelan','kaelan.png',450,110, 80,100, 40,10, 95,5,4, 60,16)
+    alec = Enemy('Alec','alec.png',325,130, 70,70, 20,40, 95,5,5, 50,12)
+    sungmin = Enemy('Sungmin','sungmin.png',425,500, 50,90, 25,25, 95,5,4, 50,14)
+    kaelan = Enemy('Kaelan','kaelan.png',450,110, 70,100, 40,10, 95,5,4, 60,16)
     # Boss 2
-    huoniao = Enemy('Huoniao','huoniao.png', 1000,600, 275,150, 60,70, 80,8,8, 200,100)
+    huoniao = Enemy('Huoniao','huoniao.png', 1000,600, 220,150, 60,70, 80,8,8, 200,100)
     # Floor 3
     aneal = Enemy('Aneal','aneal.png', 900,200, 180,70, 50,40, 95,5,5, 90,28)
     avery = Enemy('Avery','avery.png', 1400,50, 140,30, 20,20, 95,5,5, 150,19)
@@ -1490,7 +1492,7 @@ def fight():
                      [king_booga]]
 
     ### Music
-    if fightText.floor == 1 or fightText.floor == 3 or fightText.floor ==6 or fightText.floor == 8 or fightText.floor == 9:
+    if fightText.floor == 1 or fightText.floor == 3 or fightText.floor == 6 or fightText.floor == 8 or fightText.floor == 9:
         pygame.mixer.music.load('game/music/boss.mp3')
     else:
         pygame.mixer.music.load(random.choice(['game/music/bgm_fight1.mp3','game/music/bgm_fight2.mp3','game/music/bgm_fight3.mp3',\
@@ -1886,11 +1888,10 @@ def showStats():
         if boolButton('YES',25,screenW/2+300,600,75,75,red,lightRed):
             actualSave()
             heal.play()
-            time.sleep(0.5)
+            time.sleep(0.2)
             inSkill.leave()
         if boolButton('NO',25,screenW/2+400,600,75,75,red,lightRed):
             inSkill.leave()
-            
         status_bar()
         pygame.display.update()
         
@@ -1935,8 +1936,10 @@ def actualSave():
         shelfFile['head'] = player.head
         shelfFile['body'] = player.body
         # General
-        shelfFile['LV'] = player.LV 
-        shelfFile['SP'] = player.SP
+        shelfFile['LV'] = player.LV
+        total_sp = player.LV - player.SP
+        total_sp += player.LV//5
+        shelfFile['SP'] = total_sp
         shelfFile['exp'] = player.exp 
         shelfFile['max_exp'] = player.max_exp
         sellValue = 0
@@ -1995,7 +1998,7 @@ def loadGame():
     player.head = player.china_hat#shelfFile['head'] 
     player.body = player.shirt_jeans#shelfFile['body'] 
     # General
-    player.LV = shelfFile['LV'] 
+    player.LV = shelfFile['LV']
     player.SP = shelfFile['SP']
     player.exp = shelfFile['exp']
     player.max_exp = shelfFile['max_exp']
@@ -2011,33 +2014,46 @@ def loadGame():
     shelfFile.close()
     player.statUpdate()
     skillUpdate()
+    for index in range(2):
+        for skill in mage_skills_pg[index]:
+            if skill != None:
+                skill.rank = 0
+        for skill in rogue_skills_pg[index]:
+            if skill != None:
+                skill.rank = 0
 
 def askLoad():
-    inSkill.enter()
-    shelfFile = shelve.open('saved_game')
-    while inSkill.show:
-        screen.fill(lime)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                quitGame()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_q:
-                    loadGame()
-                    heal.play()
-                    time.sleep(0.2)
-                    inSkill.leave()
-                elif event.key == pygame.K_e or event.key == pygame.K_ESCAPE:
-                    inSkill.leave()
-        textbox('Do you want to load this save?',65,black,screenW/2,200)
-        textbox('%i,%i,%i   %ihr:%imin:%isec'%(shelfFile['date'][0],shelfFile['date'][1],shelfFile['date'][2],\
-                               shelfFile['date'][3],shelfFile['date'][4],shelfFile['date'][5]),80,red,screenW/2,315)
-        textbox('Press (Q: Yes /E: No)',65,black,screenW/2,550)
-        status_bar()
-        pygame.display.update()
+    if not os.path.isfile('saved_game.dat') or not os.path.isfile('saved_game.bak') or not os.path.isfile('saved_game.dir') :
+        textbox('No save file found!',60,red,screenW/2,425)
+    else:
+        inSkill.enter()
+        shelfFile = shelve.open('saved_game')
+        while inSkill.show:
+            screen.fill(lime)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    quitGame()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_q:
+                        loadGame()
+                        heal.play()
+                        time.sleep(0.2)
+                        inSkill.leave()
+                    elif event.key == pygame.K_e or event.key == pygame.K_ESCAPE:
+                        inSkill.leave()
+            textbox('Do you want to load this save?',65,black,screenW/2,200)
+            textbox('%iyr:%im:%id:%ihr:%imin:%isec'%(shelfFile['date'][0],shelfFile['date'][1],shelfFile['date'][2],\
+                                   shelfFile['date'][3],shelfFile['date'][4],shelfFile['date'][5]),70,red,screenW/2,315)
+            textbox('Name: %s     Job: %s'%(shelfFile['name'],shelfFile['job']),60,blue,screenW/2,415)
+            textbox('LV: %i'%(shelfFile['LV']),60,blue,screenW/2,485)
+            textbox('Press (Q: Yes /E: No)',65,black,screenW/2,575)
+            status_bar()
+            pygame.display.update()
 
 def saveGame():
     inSome.enter()
     time.sleep(0.2)
+    pygame.mixer.music.stop()
     pygame.mixer.music.load('game/music/save.mp3')
     pygame.mixer.music.play(-1)
     while inSome.show:
@@ -2048,13 +2064,14 @@ def saveGame():
         if boolButton('Save',25,50,50,100,100,red,lightRed):
             showStats()
         textbox('When loading your save, your items will be sold for full price',35,black,screenW/2,250)
+        textbox('Also, your skills will be reset, returning all SP',35,black,screenW/2,300)
         if boolButton('Leave',25,100,400,75,75,red,lightRed):
+            pygame.mixer.music.stop()
             pygame.mixer.music.load('game/music/bgm_home.mp3')
             pygame.mixer.music.play(-1)
             inSome.leave()
         if boolButton('Load',25,200,50,100,100,red,lightRed):
             askLoad()
-            
         status_bar()
         pygame.display.update()
     
@@ -2063,7 +2080,7 @@ def saveGame():
             
 
 # Main
-intro()
+#intro()
 player = job_select()
 enter_name()
 stats()

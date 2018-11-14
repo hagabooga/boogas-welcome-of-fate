@@ -7,5 +7,5 @@ Currently, I am trying to push development until an Alpha version can be release
 In the first version of the Alpha, only the Mage class will be available for play. 
 Subsequent versions will include other classes as playable characters.
 
---- ALPHA COMPLETE --- 
-Now working on: the Rouge class
+At this time, the Pygame version of Booga's Welcome of Fate is no longer in development. 
+If you would like to stay up to date on the project, please visit the Unity port of the game, which is a fully-fledged 2D action RPG game that retains the elements that make Booga's Welcome of Fate

@@ -1,10 +1,11 @@
 # boogas-welcome-of-fate
-an rpg using pygame
+Booga's Welcome of Fate is a Role-Playing game made using Pygame.
 
-this is a game i am working on. made for fun and experience.
+This is a game I am making for fun and experience in coding games.
+Currently, I am trying to push development until an Alpha version can be released.
 
-i am trying to get this game into alpha.
-only the Mage class will be in the first version of alpha and then will keep working from there until all 3 classes are done.
---- ALPHA COMPLETE ---
-now i will start working on the rouge class
+In the first version of the Alpha, only the Mage class will be available for play. 
+Subsequent versions will include other classes as playable characters.
 
+--- ALPHA COMPLETE --- 
+Now working on: the Rouge class

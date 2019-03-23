@@ -1,10 +1,19 @@
 # boogas-welcome-of-fate
-an rpg using pygame
 
-this is a game i am working on. made for fun and experience.
+## RPG based on Pygame
 
-i am trying to get this game into alpha.
-only the Mage class will be in the first version of alpha and then will keep working from there until all 3 classes are done.
---- ALPHA COMPLETE ---
-now i will start working on the rouge class
+Currently in the process of making.
 
+## Purpose
+
+For practice and experience.
+
+## Update 1.0
+Attempting to get the game into alpha.
+Only the Mage class will be in the first version of Alpha.
+Once completed, will work on it until until all 3 classes are done.
+
+## Update 1.1
+--- ALPHA COMPLETED ---
+
+Starting on the Rouge class.

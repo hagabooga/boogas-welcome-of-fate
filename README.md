@@ -5,11 +5,10 @@
 
 ### Alpha version completed
 
-I am currently working on the rouge class.
-
 # boogas-welcome-of-fate
 
-Currently in the process of making.
+~~Currently in the process of making.~~ 
+(PyGame version discontinued. Please see [here]https://github.com/hagabooga/welcome-of-fate-godot for the latest version of Booga's Welcome of Fate.)
 
 ## Purpose
 I am working on this game for fun and for experience.
